@@ -7,7 +7,7 @@ Backup, full and incremental.
 - Incremental Backup
   - create a new folder where the incremental backup will be stored
   - create a csv file in the root folder of the backup, which will keep a list of delete files and folders (deletedfilesandfolders-yyyy-mm-yy.csv)
-  - copy all folders from the previous incremental backup (if that exists). If there is no previous incremental or full backup, then it copies the folders from the first full backup
+  - copy all folders from the previous incremental backup (if that exists). If there is no previous incremental, then it copies the folders from the previous full backup
   - Iterate through all folders and files in the source
     - folders that don't exist yet are created (ie folders that were added since the previous backup)
     - check the creation timestamp of each file in each folder in the source. If it's newer than the creation date of the previous backup, then the file is copied to the incremental backup
