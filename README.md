@@ -12,7 +12,7 @@ Backup, full and incremental.
     - folders that don't exist yet are created (ie folders that were added since the previous backup)
     - check the creation timestamp of each file in each folder in the source. If it's newer than the creation date of the previous backup, then the file is copied to the incremental backup
   - For incremental backup only, we need to know if files and folders have been deleted since the previous backup.
-    - For each backup full and incremental, starting with the most recent full backup
+    - For each last full and each incremental backup after that last full backup, starting with the most recent full backup
       - Iterate through all folders and files in the new incremental backup
       - If a folder or file does not exist anymore in the source
         - delete the folder or file in the new incremental backup, if it's a folder, then inclusive subfolders (there shouldn't be any files in it, this is checked and if there are files, then skip and log an error)
