@@ -50,7 +50,7 @@ Backup, full and incremental.
   - Then from that json, recreate the folder structure, just the folders, not yet the files in it, name it here previousstruct
   - Then iterate through the source, the first layer of files and folders and compare to previousstruct
   - Files or folders that are missing in the new destination => add them to previousstruct, also create them in the new incremental backup, files are copied, note the timestamp
-  - Files that have a more recent timestamp in the source => copy the file to the new incremental backup, and write the new timestamp
+  - Files that have a more recent timestamp in the source => copy the file to the new incremental backup, and write the new timestamp and also the name of de incremental backup
   - Files or folders that are not anymore in the source => remove it from the previoussstruct, delete it from incremental backup (that would only be applicable to folders because files are no there), and write the deleted file or folder inthe file deletedfilesandfolders-yyyy-mm-yy.csv
   - export to json and add it in the incremental backup
  
