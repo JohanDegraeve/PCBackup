@@ -60,3 +60,4 @@ When restoring :
 - iterate through the files, find in which backup the file needs to be fetched and copy it
 
 PROBABLY DON'T NEED the DELETESFILESANDFOLDERS ??
+
