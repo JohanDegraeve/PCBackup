@@ -12,6 +12,9 @@ import model.AFile;
 
 public class FileAndFolderUtilities {
 
+	public static int amountoffolders= 0;
+	public static int amountoffiles= 0;
+	
     /**
      * creates an instance of AFileOrAFolder for folderPath. 
      * @param folderPath
@@ -28,12 +31,29 @@ public class FileAndFolderUtilities {
         	
             for (Path path : directoryStream) {
             	
+            	String fileOrFolderNameWithoutFullPath = path.toString().substring(folderPath.length() + 1);
+            	
             	if (Files.isDirectory(path)) {
-            		System.out.println("adding a folder to with name " + path.toString());
-            		returnValue.addFileOrFolder(new AFolder(path.toString()));
+            		amountoffolders++;
+            		// work recursively now. Call createAFileOrAFolder with path, so we get back a new aFolder
+            		// in the end this will result in a instance of AFileOrAFolder 
+            		AFileOrAFolder aFolder = createAFileOrAFolder(path.toString());
+
+            		// the name used in aFolder is now a full path
+            		// this is not good becuase it will take a lot of space in the resulting json file, so we remove the original path
+            		
+            		aFolder.setName(fileOrFolderNameWithoutFullPath);
+            		
+            		//System.out.println("adding a folder with name " + fileOrFolderNameWithoutFullPath);
+            		
+            		returnValue.addFileOrFolder(aFolder);
+            		
             	} else {
-            		System.out.println("adding a file to with name " + path.toString());
-            		returnValue.addFileOrFolder(new AFile(path.toString(), Files.getLastModifiedTime(path), folderPath));
+            		amountoffiles++;
+            		//System.out.println("adding a file with name " + fileOrFolderNameWithoutFullPath + " and lastmodifedtimestamp " + Files.getLastModifiedTime(path).toString());
+            		
+            		returnValue.addFileOrFolder(new AFile(fileOrFolderNameWithoutFullPath, Files.getLastModifiedTime(path).toMillis(), folderPath));
+            		
             	}
             }
             

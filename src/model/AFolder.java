@@ -26,13 +26,6 @@ public class AFolder extends AFileOrAFolder {
 	}
 
 	/**
-	 * @param fileOrFolderList the fileOrFolderList to set
-	 */
-	public void setFileOrFolderList(List<AFileOrAFolder> fileOrFolderList) {
-		this.fileOrFolderList = fileOrFolderList;
-	}
-	
-	/**
 	 * Method to add a file or folder to the list 
 	 * @param fileOrFolder
 	 */

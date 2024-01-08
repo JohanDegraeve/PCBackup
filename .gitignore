@@ -27,3 +27,7 @@ replay_pid*
 .classpath
 .project
 .settings
+/bin/
+/lib/
+
+.DS_Store

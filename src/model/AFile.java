@@ -1,13 +1,11 @@
 package model;
 
-import java.nio.file.attribute.FileTime;
-
 public class AFile extends AFileOrAFolder {
 
 	/**
 	 * when was the file last modified 
 	 */
-	private FileTime lastmodifedTimeStamp;
+	private long ts;
 	
 	/**
 	 * in which incremental backup can we find the latest version of the file<br>
@@ -16,47 +14,49 @@ public class AFile extends AFileOrAFolder {
 	private String pathToIncrementalBackup;
 
 	/**
-	 * creates a file with lastmodifedTimeStamp
+	 * creates a file with lastmodifedTimeStamp (ts)
 	 * @param name 
-	 * @param lastmodifedTimeStamp
+	 * @param ts lastmodified timestamp, created shorter to save bytes in the json representation
 	 * @param pathToIncrementalBackup
 	 */
-	public AFile(String name, FileTime lastmodifedTimeStamp, String pathToIncrementalBackup) {
+	public AFile(String name, long ts, String pathToIncrementalBackup) {
 
 		super(name);
 		
-		if (lastmodifedTimeStamp == null) {throw new IllegalArgumentException("lastmodifedTimeStamp cannot be null");}
+		if (ts == 0L) {throw new IllegalArgumentException("ts cannot be null");}
 		if (pathToIncrementalBackup == null) {throw new IllegalArgumentException("pathToIncrementalBackup cannot be null");}
 		
-		this.lastmodifedTimeStamp = lastmodifedTimeStamp;
-		this.pathToIncrementalBackup = pathToIncrementalBackup;
+		this.ts = ts;
+		this.pathToIncrementalBackup = "pathToIncrementalBackup";
 	}
 
 	/**
-	 * @return the lastmodifedTimeStamp
+	 * @return the lastmodifedTimeStamp ts
+	 * 
 	 */
-	public FileTime getLastmodifedTimeStamp() {
-		return lastmodifedTimeStamp;
+	public long getts() {
+		return ts;
 	}
 
 	/**
-	 * @param lastmodifedTimeStamp the lastmodifedTimeStamp to set
+	 * @param ts the lastmodifedTimeStamp to set
 	 */
-	public void setLastmodifedTimeStamp(FileTime lastmodifedTimeStamp) {
-		this.lastmodifedTimeStamp = lastmodifedTimeStamp;
+	public void setts(long ts) {
+		if (ts == 0L) {throw new IllegalArgumentException("ts cannot be null");}
+		this.ts = ts;
 	}
 
 	/**
 	 * @return the pathToIncrementalBackup
 	 */
-	public String getPathToIncrementalBackup() {
+	public String getbackup() {
 		return pathToIncrementalBackup;
 	}
 
 	/**
 	 * @param pathToIncrementalBackup the pathToIncrementalBackup to set
 	 */
-	public void setPathToIncrementalBackup(String pathToIncrementalBackup) {
+	public void setbackup(String pathToIncrementalBackup) {
 		this.pathToIncrementalBackup = pathToIncrementalBackup;
 	}
 
