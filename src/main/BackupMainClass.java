@@ -16,25 +16,32 @@ public class BackupMainClass {
 
     public static void main(String[] args) {
     	
-        CommandLineArguments.getInstance();
+        CommandLineArguments.getInstance(args);
+        
 		// Specify the path to the folder
-        Path folderPath = Paths.get(CommandLineArguments.getInstance(args).getArgumentValue(ArgumentName.source));
+        Path folderPath = Paths.get(CommandLineArguments.getInstance().getArgumentValue(ArgumentName.source));
 
+        
         try {
+        	
+        	String json = "";
+        	
             // List the contents of the folder
         	AFileOrAFolder aFileOrAFolder = FileAndFolderUtilities.createAFileOrAFolder(folderPath.toString());
         	
         	ObjectMapper objectMapper = new ObjectMapper();
             try {
-            	objectMapper.writeValueAsString(aFileOrAFolder);
             	
-            	//System.out.println(objectMapper.writeValueAsString(aFileOrAFolder));
-                //System.out.println("json length = " + objectMapper.writeValueAsString(aFileOrAFolder).length());
-                //System.out.println("there are " + FileAndFolderUtilities.amountoffiles + " files");
-                //System.out.println("there are " + FileAndFolderUtilities.amountoffolders + " folders");
+            	json = objectMapper.writeValueAsString(aFileOrAFolder);
+            	//System.out.println(json);
+            	
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            
+            System.out.println("amount of files   = " + FileAndFolderUtilities.amountoffiles);
+            System.out.println("amount of folders = " + FileAndFolderUtilities.amountoffolders);
+            System.out.println("json              = " + json.length());
             
         } catch (IOException e) {
             e.printStackTrace();

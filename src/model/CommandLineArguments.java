@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import utilities.Logger;
 
 /**
  * all the needed arguments, like Source folder, destination folder, ...
@@ -31,8 +31,8 @@ public class CommandLineArguments {
 
 	private static final Map<String, String> argumentMap = new HashMap<>();
 	
-	private static final Logger log = LoggerFactory.getLogger(CommandLineArguments.class);
-
+	private static boolean argumentsInitialized = false;
+	
 	// Private static instance of the class
 	private static volatile CommandLineArguments instance;
 	
@@ -41,8 +41,9 @@ public class CommandLineArguments {
 	 */
     private CommandLineArguments() {
         if (argumentMap.size() == 0) {
-        	
+        	giveMinimumArgumentsInfo();
         }
+        // TODO : zien of niet-optionele argument gegeven zijn en zo nee getminimumargumentsinfo oproepen
     }
     
     /**
@@ -53,7 +54,11 @@ public class CommandLineArguments {
      */
     public static CommandLineArguments getInstance(String[] args) {
     	
+    	if (argumentsInitialized) getInstance();
+    	
     	initialize(args);
+    	
+    	argumentsInitialized = true;
     	
         return getInstance();
         
@@ -119,7 +124,7 @@ public class CommandLineArguments {
              }
                 
             } else {
-                System.out.println("Invalid argument format: " + arg);
+                System.out.println("Invalid argument format. Argument name must start with '--': " + arg);
             }
         }
 
@@ -142,7 +147,9 @@ public class CommandLineArguments {
         // Implement the logic to configure logging to the specified file
         // This method can be adapted based on your logging library and configuration
         // ...
-        log.info("Logging to file: {}", logFilePath);
+    	// TODO check if logfilePath is valid
+    	Logger.logFile = logFilePath;
+        System.out.println("Logging to file " + logFilePath);
     }
     
     /**
@@ -173,6 +180,16 @@ public class CommandLineArguments {
                 System.out.println("Unknown argument name: " + argName);
                 return false;
         }
+    }
+    
+    /**
+     * gives minimum arguments needed for the app, and prints this info to System.out.println
+    */
+    private static void giveMinimumArgumentsInfo() {
+    	System.out.println("Minimum arguments:");
+    	System.out.println("  --logfile: ");
+    	System.out.println("  --source: ");
+    	System.out.println("  --destination: ");
     }
     
 }
