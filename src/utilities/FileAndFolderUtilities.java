@@ -10,6 +10,9 @@ import model.AFileOrAFolder;
 import model.AFolder;
 import model.AFile;
 
+/**
+ * utilities related to creation and processing of instances of type AFile and AFileOrAFolder
+ */
 public class FileAndFolderUtilities {
 
 	public static int amountoffolders= 0;

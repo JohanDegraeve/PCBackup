@@ -18,10 +18,36 @@ public class CommandLineArguments {
 	 * Enum to represent argument names
 	 */
     public enum ArgumentName {
+    	
+    	/**
+    	 * Folder where the actual source that we're backing up is stored<br>
+    	 * This is the full path, example E:\sourcefolder\
+    	 */
         source,
+        
+        /**
+         * Folder where we store the backups, either full or incremental.<br>
+         * Each time we create a new backup, a subfolder will be created in that folder 
+         */
         destination,
-        logFile
+        
+        /**
+         *  Folder and file name<br>
+         *  WITHOUT EXTENSION --- .log WILL BE ADDED AUTOMATICALLY<br>
+         *  
+         *  Also date and time will be added
+         */
+        logFile,
+        
+        /**
+         * F or I (f or i is also good)<br>
+         * F for full<br>
+         * I for incremental<br>
+         */
+        type
+        
         // Add more argument names as needed
+        
     }
     
 	/**
