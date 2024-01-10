@@ -1,5 +1,7 @@
 package model;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,12 +35,9 @@ public class CommandLineArguments {
         destination,
         
         /**
-         *  Folder and file name<br>
-         *  WITHOUT EXTENSION --- .log WILL BE ADDED AUTOMATICALLY<br>
-         *  
-         *  Also date and time will be added
+         *  Folder where logfile should be written<br>
          */
-        logFile,
+        logfilefolder,
         
         /**
          * F or I (f or i is also good)<br>
@@ -75,6 +74,20 @@ public class CommandLineArguments {
     		) {
     		giveMinimumArgumentsInfo();
     		System.exit(0);
+    	}
+    	
+    	// if logflogfilefolderile is present, then check if it's a directory
+    	if (getArgumentValue(ArgumentName.logfilefolder) != null) {
+    		if (!(Files.isDirectory(Paths.get(getArgumentValue(ArgumentName.logfilefolder))))) {
+    			System.out.println("logfilefolder should be a directory");
+    			System.exit(0);
+    		} else {
+    			if (!(Files.exists(Paths.get(getArgumentValue(ArgumentName.logfilefolder))))) {
+    				System.out.println("logfilefolder does not exist");
+    				System.exit(0);
+    			}
+    		}
+    		
     	}
         
     }
@@ -212,8 +225,8 @@ public class CommandLineArguments {
                 // Process and validate destination argument value
                 return true; // Placeholder, implement your logic here
 
-            case "logFile":
-                // Process and validate logFile argument value
+            case "logfilefolder":
+                // Process and validate logfilefolder argument value
                 configureLogFile(argValue);
                 return true;
             case "type":

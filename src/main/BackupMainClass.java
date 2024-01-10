@@ -37,8 +37,6 @@ public class BackupMainClass {
         	subfolder = subfolder + " (Incremental)";
         }
         Path destinationFolderPath = CreateSubFolder.createSubFolder(CommandLineArguments.getInstance().getArgumentValue(ArgumentName.destination), subfolder);
-     
-        
         
         try {
         	

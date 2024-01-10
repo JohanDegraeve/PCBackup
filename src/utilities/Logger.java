@@ -43,7 +43,7 @@ public class Logger {
 			return;
 		}
 		
-		if (CommandLineArguments.getInstance().getArgumentValue(ArgumentName.logFile) != null) {
+		if (CommandLineArguments.getInstance().getArgumentValue(ArgumentName.logfilefolder) != null) {
 			// TODO : write to logfile
 		}
 		
