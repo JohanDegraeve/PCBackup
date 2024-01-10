@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import model.CommandLineArguments.ArgumentName;
 import utilities.Logger;
 
 /**
@@ -66,10 +67,16 @@ public class CommandLineArguments {
 	 * Private constructor to prevent instantiation outside the class
 	 */
     private CommandLineArguments() {
-        if (argumentMap.size() == 0) {
-        	giveMinimumArgumentsInfo();
-        }
-        // TODO : zien of niet-optionele argument gegeven zijn en zo nee getminimumargumentsinfo oproepen
+        
+    	if (
+    			getArgumentValue(ArgumentName.source) == null ||
+    			getArgumentValue(ArgumentName.destination) == null ||
+    			getArgumentValue(ArgumentName.type) == null
+    		) {
+    		giveMinimumArgumentsInfo();
+    		System.exit(0);
+    	}
+        
     }
     
     /**
@@ -135,6 +142,14 @@ public class CommandLineArguments {
                 String argName = parts[0].substring(2);
                 String argValue = parts[1];
 
+            // Handle quoted values
+            if (argValue.startsWith("\"") && argValue.endsWith("\"")) {
+                argValue = argValue.substring(1, argValue.length() - 1);
+            }
+                
+            // Trim leading and trailing spaces from argValue
+            argValue = argValue.trim();
+            
              // Check if the argument name is valid
              if (isValidArgumentName(argName)) {
             	 
@@ -144,13 +159,16 @@ public class CommandLineArguments {
                     argumentMap.put(argName, argValue);
                  } else {
                     System.out.println("Invalid argument value for " + argName + ": " + argValue);
+                    giveMinimumArgumentsInfo();
                  }
              } else {
                     System.out.println("Invalid argument name: " + argName);
+                    giveMinimumArgumentsInfo();
              }
                 
             } else {
                 System.out.println("Invalid argument format. Argument name must start with '--': " + arg);
+                giveMinimumArgumentsInfo();
             }
         }
 
@@ -174,7 +192,7 @@ public class CommandLineArguments {
         // This method can be adapted based on your logging library and configuration
         // ...
     	// TODO check if logfilePath is valid
-    	Logger.logFile = logFilePath;
+    	Logger.logFileFolder = logFilePath;
         System.out.println("Logging to file " + logFilePath);
     }
     
@@ -198,7 +216,11 @@ public class CommandLineArguments {
                 // Process and validate logFile argument value
                 configureLogFile(argValue);
                 return true;
-
+            case "type":
+            	if (!(argValue.startsWith("f") || argValue.startsWith("F") || argValue.startsWith("I") || argValue.startsWith("i"))) {
+            		return false;
+            	}
+            	return true;
             // Add more cases for other argument names as needed
 
             default:
@@ -212,10 +234,13 @@ public class CommandLineArguments {
      * gives minimum arguments needed for the app, and prints this info to System.out.println
     */
     private static void giveMinimumArgumentsInfo() {
-    	System.out.println("Minimum arguments:");
-    	System.out.println("  --logfile: ");
-    	System.out.println("  --source: ");
-    	System.out.println("  --destination: ");
+    	System.out.println("Mandatory arguments:");
+    	System.out.println("  --source: location of the source data that you want to backup, it must be a folder name, the contents will be backedup");
+    	System.out.println("  --destination: location of the destination to where you want to backup");
+    	System.out.println("  --type: F for Full, I for incremental.");
+    	System.out.println("");
+    	System.out.println("Optional arguments:");
+    	System.out.println("  --logfile: location of the logfile, just the folder name, it must exist.");
     }
     
 }

@@ -10,7 +10,7 @@ import model.CommandLineArguments.ArgumentName;
 
 public class Logger {
 
-	public static String logFile = null;
+	public static String logFileFolder = null;
 	
 	/**
 	 * assigns logFile to path. path must include a full filename without extension. <br>
@@ -27,7 +27,7 @@ public class Logger {
         try {
             if (file.createNewFile()) {
                 System.out.println("File created: " + file.getAbsolutePath());
-                logFile = fullPath;
+                logFileFolder = fullPath;
             } else {
                 System.out.println("File already exists: " + file.getAbsolutePath());
             }
@@ -38,7 +38,7 @@ public class Logger {
 	
 	public static void log(String texttoLog) {
 		
-		if (logFile == null) {
+		if (logFileFolder == null) {
 			System.out.println(texttoLog);
 			return;
 		}

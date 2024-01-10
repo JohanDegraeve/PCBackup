@@ -7,11 +7,11 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import model.AFileOrAFolder;
 import model.CommandLineArguments;
 import model.CommandLineArguments.ArgumentName;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import utilities.CreateSubFolder;
 import utilities.FileAndFolderUtilities;
@@ -37,7 +37,7 @@ public class BackupMainClass {
         	subfolder = subfolder + " (Incremental)";
         }
         Path destinationFolderPath = CreateSubFolder.createSubFolder(CommandLineArguments.getInstance().getArgumentValue(ArgumentName.destination), subfolder);
-        
+     
         
         
         try {
@@ -48,8 +48,9 @@ public class BackupMainClass {
              * source folder stored in AFileOrAFolder
              */
         	AFileOrAFolder aFileOrAFolderSourceFolder = FileAndFolderUtilities.createAFileOrAFolder(sourceFolderPath.toString());
-        	
+
         	ObjectMapper objectMapper = new ObjectMapper();
+        	
             try {
             	
             	json = objectMapper.writeValueAsString(aFileOrAFolderSourceFolder);
