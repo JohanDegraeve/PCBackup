@@ -60,4 +60,9 @@ public class AFile extends AFileOrAFolder {
 		this.pathToIncrementalBackup = pathToIncrementalBackup;
 	}
 
+	@Override
+	public boolean isFile() {
+		return true;
+	}
+
 }

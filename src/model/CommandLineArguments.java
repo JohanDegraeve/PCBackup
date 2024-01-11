@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import model.CommandLineArguments.ArgumentName;
 import utilities.Logger;
 
 /**
@@ -73,18 +72,18 @@ public class CommandLineArguments {
     			getArgumentValue(ArgumentName.type) == null
     		) {
     		giveMinimumArgumentsInfo();
-    		System.exit(0);
+    		System.exit(1);
     	}
     	
-    	// if logflogfilefolderile is present, then check if it's a directory
+    	// if logfilefolderfile is present, then check if it's a directory
     	if (getArgumentValue(ArgumentName.logfilefolder) != null) {
     		if (!(Files.isDirectory(Paths.get(getArgumentValue(ArgumentName.logfilefolder))))) {
     			System.out.println("logfilefolder should be a directory");
-    			System.exit(0);
+    			System.exit(1);
     		} else {
     			if (!(Files.exists(Paths.get(getArgumentValue(ArgumentName.logfilefolder))))) {
     				System.out.println("logfilefolder does not exist");
-    				System.exit(0);
+    				System.exit(1);
     			}
     		}
     		

@@ -28,5 +28,11 @@ public abstract class AFileOrAFolder {
     public void setName(String name) {
         this.name = name;
     }
-   
+
+    /**
+     * to be implemented by subclass, if it's not a file, then it's a folder
+     * @return
+     */
+    public abstract boolean isFile();
+
 }

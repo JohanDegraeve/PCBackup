@@ -32,4 +32,10 @@ public class AFolder extends AFileOrAFolder {
     public void addFileOrFolder(AFileOrAFolder fileOrFolder) {
         fileOrFolderList.add(fileOrFolder);
     }
+    
+	@Override
+	public boolean isFile() {
+		return false;
+	}
+
 }
