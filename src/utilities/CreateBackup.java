@@ -53,6 +53,8 @@ public class CreateBackup {
 	
 	private static void copyFilesAndFoldersFromSourceToDest(AFileOrAFolder aFileOrAFolderSourceFolder, Path sourceFolderPath, Path destinationFolderPath, boolean createEmptyFolders) {
 
+		// the argument aFileOrAFolderSourceFolder is here a full path, inclusive the
+		
 		// add filename to source and destination folders
 		Path sourcePathToCopyFrom = sourceFolderPath.resolve(aFileOrAFolderSourceFolder.getName());
 		Path destinationPathToCopyTo = destinationFolderPath.resolve(aFileOrAFolderSourceFolder.getName());

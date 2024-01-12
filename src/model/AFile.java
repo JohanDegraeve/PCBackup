@@ -27,7 +27,7 @@ public class AFile extends AFileOrAFolder {
 		if (pathToIncrementalBackup == null) {throw new IllegalArgumentException("pathToIncrementalBackup cannot be null");}
 		
 		this.ts = ts;
-		this.pathToIncrementalBackup = "pathToIncrementalBackup";
+		this.pathToIncrementalBackup = pathToIncrementalBackup;
 	}
 
 	/**
