@@ -24,7 +24,7 @@ public class FileAndFolderUtilities {
      * @return an instance of 
      * @throws IOException
      */
-    public static AFileOrAFolder createAFileOrAFolder(String folderPath) throws IOException {
+    public static AFileOrAFolder createAFileOrAFolder(String folderPath, String incrementalBackupFolderName) throws IOException {
     	
     	// return value is a folder, with the folderPath as name
     	AFolder returnValue = new AFolder(folderPath);
