@@ -1,6 +1,7 @@
 package model;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -66,11 +67,20 @@ public class CommandLineArguments {
 	 */
     private CommandLineArguments() {
         
-    	if (
-    			getArgumentValue(ArgumentName.source) == null ||
-    			getArgumentValue(ArgumentName.destination) == null ||
-    			getArgumentValue(ArgumentName.type) == null
-    		) {
+    	if (getArgumentValue(ArgumentName.source) == null) {
+    		System.out.println("source argument is missing");
+    		giveMinimumArgumentsInfo();
+    		System.exit(1);
+    	}
+    	
+    	if (getArgumentValue(ArgumentName.destination) == null) {
+    		System.out.println("destination argument is missing");
+    		giveMinimumArgumentsInfo();
+    		System.exit(1);
+    	}
+    	
+    	if (getArgumentValue(ArgumentName.type) == null) {
+    		System.out.println("type argument is missing");
     		giveMinimumArgumentsInfo();
     		System.exit(1);
     	}
@@ -88,7 +98,19 @@ public class CommandLineArguments {
     		}
     		
     	}
-        
+    	
+    	// check if destination folder exists
+    	Path folderPath = Paths.get(getArgumentValue(ArgumentName.destination));
+    	if (!(Files.exists(folderPath))) {
+    		System.out.println("folder " + folderPath.toString() + " does not exist. Create it first or check the argument 'destination'");
+    	}
+    	
+    	// check if source folder exists
+    	folderPath = Paths.get(getArgumentValue(ArgumentName.source));
+    	if (!(Files.exists(folderPath))) {
+    		System.out.println("folder " + folderPath.toString() + " does not exist. Create it first or check the argument 'source'");
+    	}
+    	
     }
     
     /**
@@ -118,12 +140,7 @@ public class CommandLineArguments {
     public static CommandLineArguments getInstance() {
     	
         if (instance == null) {
-            synchronized (CommandLineArguments.class) {
-                // Double-checking to ensure thread safety
-                if (instance == null) {
-                    instance = new CommandLineArguments();
-                }
-            }
+        	instance = new CommandLineArguments();
         }
         return instance;
     }
@@ -252,7 +269,7 @@ public class CommandLineArguments {
     	System.out.println("  --type: F for Full, I for incremental.");
     	System.out.println("");
     	System.out.println("Optional arguments:");
-    	System.out.println("  --logfile: location of the logfile, just the folder name, it must exist.");
+    	System.out.println("  --logfilefolder: location of the logfile, just the folder name, it must exist.");
     }
     
 }

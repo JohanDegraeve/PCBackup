@@ -41,7 +41,7 @@ public class BackupMainClass {
              */
         	AFileOrAFolder aFileOrAFolderSourceFolder = FileAndFolderUtilities.createAFileOrAFolder(sourceFolderPath.toString());
         	
-            CreateBackup.createFullBackup(aFileOrAFolderSourceFolder, destinationFolderPath);
+            CreateBackup.createFullBackup(aFileOrAFolderSourceFolder, sourceFolderPath, destinationFolderPath);
             
             System.out.println("amount of files   = " + FileAndFolderUtilities.amountoffiles);
             System.out.println("amount of folders = " + FileAndFolderUtilities.amountoffolders);

@@ -45,33 +45,43 @@ public class CreateBackup {
 
 		// first write the json file to destination folder
 		WriteToFile.writeToFile(sourceFolderToJson, destinationFolderPath.toString() + File.separator + "folderlist.json");
+		
+		// copy files that are in aFileOrAFolderSourceFolder
+		copyFilesAndFoldersFromSourceToDest(aFileOrAFolderSourceFolder, sourceFolderPath, destinationFolderPath, false);
 				
 	}
 	
 	private static void copyFilesAndFoldersFromSourceToDest(AFileOrAFolder aFileOrAFolderSourceFolder, Path sourceFolderPath, Path destinationFolderPath, boolean createEmptyFolders) {
 
+		// add filename to source and destination folders
+		Path sourcePathToCopyFrom = sourceFolderPath.resolve(aFileOrAFolderSourceFolder.getName());
+		Path destinationPathToCopyTo = destinationFolderPath.resolve(aFileOrAFolderSourceFolder.getName());
+		
+
 		if (aFileOrAFolderSourceFolder instanceof AFile) {
 
 			// we need to copy the file from source to dest
 			
-			Path sourcePathToCopyFrom = sourceFolderPath.resolve(aFileOrAFolderSourceFolder.getName());
-			Path destinationPathToCopyTo = destinationFolderPath.resolve(aFileOrAFolderSourceFolder.getName());
-			
 			try {
+				
 				Files.copy(sourcePathToCopyFrom, destinationPathToCopyTo, StandardCopyOption.COPY_ATTRIBUTES);
+				
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				
 				e.printStackTrace();
+				
 				Logger.log("Exception occurred while copying from " + sourcePathToCopyFrom.toString() + " to " + destinationPathToCopyTo.toString());
+				
 				System.exit(1);
+				
 			}
 			
 		} else if (aFileOrAFolderSourceFolder instanceof AFolder){
 			
-			// we need to iterate through the folder
+			// we need to iterate through the folder, each new file or folder in aFileOrAFolderSourceFolder is reprocessed
 			for (AFileOrAFolder fileOrFolder : ((AFolder)aFileOrAFolderSourceFolder).getFileOrFolderList()) {
 				
-				copyFilesAndFoldersFromSourceToDest(AFileOrAFolder aFileOrAFolderSourceFolder, Path sourceFolderPath, Path destinationFolderPath, boolean createEmptyFolders);
+				copyFilesAndFoldersFromSourceToDest(fileOrFolder, sourcePathToCopyFrom, destinationPathToCopyTo, createEmptyFolders);
 				
 			}
 			
