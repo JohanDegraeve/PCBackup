@@ -7,11 +7,24 @@ public abstract class AFileOrAFolder {
 	 */
 	private String name;
 	
-	public AFileOrAFolder(String name) {
-		if (name == null) {throw new IllegalArgumentException("Name cannot be null");}
+	/**
+	 * in which backup folder can we find the latest version of the file<br>
+	 * It's a path relative to the source folder of the backup. Meaning it doesn't include the source folder name, and it doesn't start with a slash<br>
+	 * It's something like '2023-12-06 18;24;41 (Full)' or '2023-12-28 17;07;13 (Incremental)'
+	 */
+	private String pathToBackup;
+
+	public AFileOrAFolder(String name, String pathToBackup) {
+		if (name == null) {throw new IllegalArgumentException("in constructor AFileOrAFolder, Name cannot be null");}
+		if (pathToBackup == null) {throw new IllegalArgumentException("in constructor AFileOrAFolder, pathToBackup cannot be null");}
 		this.name = name;
+		this.pathToBackup = pathToBackup;
 	}
 	
+	public String getPathToBackup() {
+		return pathToBackup;
+	}
+
 	/**
 	 * getter for name of the file or folder
 	 * 

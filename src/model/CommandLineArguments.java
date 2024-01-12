@@ -103,12 +103,14 @@ public class CommandLineArguments {
     	Path folderPath = Paths.get(getArgumentValue(ArgumentName.destination));
     	if (!(Files.exists(folderPath))) {
     		System.out.println("folder " + folderPath.toString() + " does not exist. Create it first or check the argument 'destination'");
+    		System.exit(1);
     	}
     	
     	// check if source folder exists
     	folderPath = Paths.get(getArgumentValue(ArgumentName.source));
     	if (!(Files.exists(folderPath))) {
     		System.out.println("folder " + folderPath.toString() + " does not exist. Create it first or check the argument 'source'");
+    		System.exit(1);
     	}
     	
     }

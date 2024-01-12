@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -16,11 +17,12 @@ public class CreateBackup {
 
 	/**
 	 * create a full backup
+	 * @param listOfFilesAndFoldersInSourceFolder : files and folders in sourceFolderPath in a list of AFileOrAFolder
 	 * @param sourceFolderToJson : json formatted file and folder list
 	 * @param destinationFolderPath : must exist
 	 */
 
-	public static void createFullBackup(AFileOrAFolder aFileOrAFolderSourceFolder, Path sourceFolderPath, Path destinationFolderPath) {
+	public static void createFullBackup(List<AFileOrAFolder> listOfFilesAndFoldersInSourceFolder, Path sourceFolderPath, Path destinationFolderPath) {
 		
 		// check if destination path already exists, otherwise stop, coding error
 		if (!(Files.exists(destinationFolderPath))) {
@@ -37,7 +39,7 @@ public class CreateBackup {
     	
         try {
         	
-        	sourceFolderToJson = objectMapper.writeValueAsString(aFileOrAFolderSourceFolder);
+        	sourceFolderToJson = objectMapper.writeValueAsString(listOfFilesAndFoldersInSourceFolder);
         	
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,52 +49,57 @@ public class CreateBackup {
 		WriteToFile.writeToFile(sourceFolderToJson, destinationFolderPath.toString() + File.separator + "folderlist.json");
 		
 		// copy files that are in aFileOrAFolderSourceFolder
-		copyFilesAndFoldersFromSourceToDest(aFileOrAFolderSourceFolder, sourceFolderPath, destinationFolderPath, false);
+		copyFilesAndFoldersFromSourceToDest(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPath, true);
 				
 	}
 	
-	private static void copyFilesAndFoldersFromSourceToDest(AFileOrAFolder aFileOrAFolderSourceFolder, Path sourceFolderPath, Path destinationFolderPath, boolean createEmptyFolders) {
+	private static void copyFilesAndFoldersFromSourceToDest(List<AFileOrAFolder> listOfFilesAndFoldersInSourceFolder, Path sourceFolderPath, Path destinationFolderPath, boolean createEmptyFolders) {
 
-		// the argument aFileOrAFolderSourceFolder is here a full path, inclusive the
-		
-		// add filename to source and destination folders
-		Path sourcePathToCopyFrom = sourceFolderPath.resolve(aFileOrAFolderSourceFolder.getName());
-		Path destinationPathToCopyTo = destinationFolderPath.resolve(aFileOrAFolderSourceFolder.getName());
-		
-
-		if (aFileOrAFolderSourceFolder instanceof AFile) {
-
-			// we need to copy the file from source to dest
+		for (AFileOrAFolder aFileOrAFolder: listOfFilesAndFoldersInSourceFolder) {
 			
-			try {
+			// the argument aFileOrAFolderSourceFolder is here a full path, inclusive the
+			
+			// add filename to source and destination folders
+			Path sourcePathToCopyFrom = sourceFolderPath.resolve(aFileOrAFolder.getName());
+			Path destinationPathToCopyTo = destinationFolderPath.resolve(aFileOrAFolder.getName());
+			
+
+			if (aFileOrAFolder instanceof AFile) {
+
+				// we need to copy the file from source to dest
 				
-				Files.copy(sourcePathToCopyFrom, destinationPathToCopyTo, StandardCopyOption.COPY_ATTRIBUTES);
+				try {
+					
+					Files.copy(sourcePathToCopyFrom, destinationPathToCopyTo, StandardCopyOption.COPY_ATTRIBUTES);
+					
+				} catch (IOException e) {
+					
+					e.printStackTrace();
+					
+					Logger.log("Exception occurred while copying from " + sourcePathToCopyFrom.toString() + " to " + destinationPathToCopyTo.toString());
+					
+					System.exit(1);
+					
+				}
 				
-			} catch (IOException e) {
+			} else if (aFileOrAFolder instanceof AFolder){
 				
-				e.printStackTrace();
+				// TODO : create the folder if createEmptyFolders is true
 				
-				Logger.log("Exception occurred while copying from " + sourcePathToCopyFrom.toString() + " to " + destinationPathToCopyTo.toString());
+				AFolder afolder = (AFolder)aFileOrAFolder;
 				
+				copyFilesAndFoldersFromSourceToDest(afolder.getFileOrFolderList(), sourceFolderPath.resolve(afolder.getName()), destinationFolderPath.resolve(afolder.getName()), createEmptyFolders);
+				
+			} else {
+				
+				// that's a coding error
+				Logger.log("error in copyFilesAndFoldersFromSourceToDest, a AFileOrAFolder that is not AFile and not AFolder ...");
 				System.exit(1);
-				
 			}
+
 			
-		} else if (aFileOrAFolderSourceFolder instanceof AFolder){
-			
-			// we need to iterate through the folder, each new file or folder in aFileOrAFolderSourceFolder is reprocessed
-			for (AFileOrAFolder fileOrFolder : ((AFolder)aFileOrAFolderSourceFolder).getFileOrFolderList()) {
-				
-				copyFilesAndFoldersFromSourceToDest(fileOrFolder, sourcePathToCopyFrom, destinationPathToCopyTo, createEmptyFolders);
-				
-			}
-			
-		} else {
-			
-			// that's a coding error
-			Logger.log("error in copyFilesAndFoldersFromSourceToDest, a AFileOrAFolder that is not AFile and not AFolder ...");
-			System.exit(1);
 		}
+		
 		
 	}
 	

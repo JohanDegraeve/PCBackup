@@ -10,9 +10,9 @@ public class AFolder extends AFileOrAFolder {
 	 */
 	private List<AFileOrAFolder> fileOrFolderList;
 	
-	public AFolder(String name) {
+	public AFolder(String name, String pathToBackup) {
 		
-		super(name);
+		super(name, pathToBackup);
 		// Initialize the attribute with an empty list
         this.fileOrFolderList = new ArrayList<>();
         

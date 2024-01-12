@@ -38,10 +38,12 @@ public class BackupMainClass {
         } else {
         	backupfoldername = backupfoldername + " (Incremental)";
         }
+        
         Path destinationFolderPath = CreateSubFolder.createSubFolder(CommandLineArguments.getInstance().getArgumentValue(ArgumentName.destination), backupfoldername);
 
-    	// first we make a list of files and folder in the sourceFolderPath, as instance of AFileOrAFolder
-        // Create a DirectoryStream to iterate over the contents of the folder
+    	// first we make a list of files and folder in the sourceFolderPath,
+        // for each file or folder we create an instance of AFileOrAFolder
+        // Create a DirectoryStream to iterate over the contents of the sourceFolderPath
         List<AFileOrAFolder> listOfFilesAndFoldersInSourceFolder = new ArrayList<>();
         
         try {
@@ -49,43 +51,16 @@ public class BackupMainClass {
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sourceFolderPath)) {
             	
                 for (Path path : directoryStream) {
-                	
-                	String fileOrFolderNameWithoutFullPath = path.toString().substring(folderOrStringPath.toString().length() + 1);
-                	
-                	if (Files.isDirectory(path)) {
-                		
-                		listOfFilesAndFoldersInSourceFolder.add(new AFolder(fileOrFolderNameWithoutFullPath));
-
-                		// the name used in aFolder is now a full path
-                		// this is not good because it will take a lot of space in the resulting json file, so we remove the original path
-                		
-                		aFolder.setName(fileOrFolderNameWithoutFullPath);
-                		
-                		//System.out.println("adding a folder with name " + fileOrFolderNameWithoutFullPath);
-                		
-                		returnValue.addFileOrFolder(aFolder);
-                		
-                	} else {
-                		amountoffiles++;
-                		//System.out.println("adding a file with name " + fileOrFolderNameWithoutFullPath + " and lastmodifedtimestamp " + Files.getLastModifiedTime(path).toString());
-                		
-                		returnValue.addFileOrFolder(new AFile(fileOrFolderNameWithoutFullPath, Files.getLastModifiedTime(path).toMillis(), incrementalBackupFolderName));
-                		
-                	}
+                	listOfFilesAndFoldersInSourceFolder.add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername));                	
                 }
                 
             }
 
         	
-            /**
-             * source folder stored in AFileOrAFolder
-             */
-        	AFileOrAFolder aFileOrAFolderSourceFolder = FileAndFolderUtilities.createAFileOrAFolder(sourceFolderPath.toString(), backupfoldername);
-        	
-            CreateBackup.createFullBackup(aFileOrAFolderSourceFolder, sourceFolderPath, destinationFolderPath);
+            CreateBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPath);
             
-            System.out.println("amount of files   = " + FileAndFolderUtilities.amountoffiles);
-            System.out.println("amount of folders = " + FileAndFolderUtilities.amountoffolders);
+            //System.out.println("amount of files   = " + FileAndFolderUtilities.amountoffiles);
+            //System.out.println("amount of folders = " + FileAndFolderUtilities.amountoffolders);
             //System.out.println("json              = " + sourceFolderToJson.length());
             
         } catch (IOException e) {
