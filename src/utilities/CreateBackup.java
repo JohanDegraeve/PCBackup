@@ -3,6 +3,7 @@ package utilities;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
@@ -22,7 +23,7 @@ public class CreateBackup {
 	 * @param destinationFolderPath : must exist
 	 */
 
-	public static void createFullBackup(List<AFileOrAFolder> listOfFilesAndFoldersInSourceFolder, Path sourceFolderPath, Path destinationFolderPath) {
+	public static void createFullBackup(AFolder listOfFilesAndFoldersInSourceFolder, Path sourceFolderPath, Path destinationFolderPath) {
 		
 		// check if destination path already exists, otherwise stop, coding error
 		if (!(Files.exists(destinationFolderPath))) {
@@ -49,7 +50,7 @@ public class CreateBackup {
 		WriteToFile.writeToFile(sourceFolderToJson, destinationFolderPath.toString() + File.separator + "folderlist.json");
 		
 		// copy files that are in aFileOrAFolderSourceFolder
-		copyFilesAndFoldersFromSourceToDest(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPath, true);
+		copyFilesAndFoldersFromSourceToDest(listOfFilesAndFoldersInSourceFolder.getFileOrFolderList(), sourceFolderPath, destinationFolderPath, true);
 				
 	}
 	
@@ -70,7 +71,10 @@ public class CreateBackup {
 				
 				try {
 					
-					Files.copy(sourcePathToCopyFrom, destinationPathToCopyTo, StandardCopyOption.COPY_ATTRIBUTES);
+					// check if destinationPathToCopyTo exists, if not created it
+					createSubFolderIfNotExisting(destinationPathToCopyTo);
+					
+					Files.copy(sourcePathToCopyFrom, destinationPathToCopyTo, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
 					
 				} catch (IOException e) {
 					
@@ -84,7 +88,10 @@ public class CreateBackup {
 				
 			} else if (aFileOrAFolder instanceof AFolder){
 				
-				// TODO : create the folder if createEmptyFolders is true
+				if (createEmptyFolders) {
+					// check if destinationPathToCopyTo exists, if not created it
+					createSubFolderIfNotExisting(destinationPathToCopyTo);
+				}
 				
 				AFolder afolder = (AFolder)aFileOrAFolder;
 				
@@ -100,7 +107,24 @@ public class CreateBackup {
 			
 		}
 		
+	}
+	
+	private static void createSubFolderIfNotExisting(Path path) {
 		
+		// check if destinationPathToCopyTo exists
+		if (!(Files.exists(path, LinkOption.NOFOLLOW_LINKS))) {
+			
+		    // Create the subfolder
+		    File subfolder = new File(path.toString());
+
+		    if (subfolder.mkdirs()) {
+		        Logger.log("Subfolder created successfully: " + subfolder.getAbsolutePath());
+		    } else {
+		    	Logger.log("Subfolder already exists or creation failed: " + subfolder.getAbsolutePath());
+		    }
+			
+		}
+
 	}
 	
 }

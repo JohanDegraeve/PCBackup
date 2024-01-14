@@ -1,5 +1,18 @@
 package model;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+//AFileOrAFolder class
+@JsonTypeInfo(
+     use = JsonTypeInfo.Id.NAME,
+     include = JsonTypeInfo.As.PROPERTY,
+     property = "type"
+)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = AFile.class, name = "afile"),
+    @JsonSubTypes.Type(value = AFolder.class, name = "afolder")
+})
 public abstract class AFileOrAFolder {
 
 	/**
@@ -21,6 +34,13 @@ public abstract class AFileOrAFolder {
 		this.pathToBackup = pathToBackup;
 	}
 	
+	/**
+	 * created to allow json deserialisation
+	 */
+	public AFileOrAFolder() {
+		// TODO Auto-generated constructor stub
+	}
+
 	public String getPathToBackup() {
 		return pathToBackup;
 	}
@@ -41,11 +61,5 @@ public abstract class AFileOrAFolder {
     public void setName(String name) {
         this.name = name;
     }
-
-    /**
-     * to be implemented by subclass, if it's not a file, then it's a folder
-     * @return
-     */
-    public abstract boolean isFile();
 
 }

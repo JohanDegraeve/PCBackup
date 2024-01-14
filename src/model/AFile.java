@@ -1,5 +1,11 @@
 package model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+
+//AFileOrAFolder class
 public class AFile extends AFileOrAFolder {
 
 	/**
@@ -24,6 +30,13 @@ public class AFile extends AFileOrAFolder {
 	}
 
 	/**
+	 * created to allow json deserialisation
+	 */
+	public AFile() {
+		super();
+	}
+
+	/**
 	 * @return the lastmodifedTimeStamp ts
 	 * 
 	 */
@@ -37,11 +50,6 @@ public class AFile extends AFileOrAFolder {
 	public void setts(long ts) {
 		if (ts == 0L) {throw new IllegalArgumentException("ts cannot be null");}
 		this.ts = ts;
-	}
-
-	@Override
-	public boolean isFile() {
-		return true;
 	}
 
 }

@@ -1,16 +1,19 @@
 package main;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import model.AFile;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import model.AFileOrAFolder;
 import model.AFolder;
 import model.CommandLineArguments;
@@ -44,28 +47,46 @@ public class BackupMainClass {
     	// first we make a list of files and folder in the sourceFolderPath,
         // for each file or folder we create an instance of AFileOrAFolder
         // Create a DirectoryStream to iterate over the contents of the sourceFolderPath
-        List<AFileOrAFolder> listOfFilesAndFoldersInSourceFolder = new ArrayList<>();
+        AFolder listOfFilesAndFoldersInSourceFolder = new AFolder(sourceFolderPath.toString(), "");
         
         try {
         	
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sourceFolderPath)) {
             	
                 for (Path path : directoryStream) {
-                	listOfFilesAndFoldersInSourceFolder.add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername));                	
+                	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername));                	
                 }
                 
             }
 
-        	
-            CreateBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPath);
+            // this sorts the list by name of the folders and files in  the directory, not the files in the folders within those folders
+            //   (that's done in the function createAFileOrAFolder itself)
+            Collections.sort(listOfFilesAndFoldersInSourceFolder.getFileOrFolderList(), (a, b) -> a.getName().compareTo(b.getName()));
             
-            //System.out.println("amount of files   = " + FileAndFolderUtilities.amountoffiles);
-            //System.out.println("amount of folders = " + FileAndFolderUtilities.amountoffolders);
-            //System.out.println("json              = " + sourceFolderToJson.length());
+            CreateBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPath);
             
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
+        // as test , read back a json file
+        String filePathString = "/Users/johandegraeve/Downloads/backup/" + backupfoldername + "/folderlist.json";
+        Path filePath = Paths.get(filePathString);
+
+        try {
+            // Read the file contents as a string
+            String fileContent = Files.readString(filePath, StandardCharsets.UTF_8);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            AFileOrAFolder aFileOrAFolder = objectMapper.readValue(fileContent, AFileOrAFolder.class);
+            System.out.println("ready to veiw the prased json");
+        } catch (IOException e) {
+            // Handle IOException (e.g., file not found or permission issues)
+            e.printStackTrace();
+        }
+        
+        
+        
     }
 
 }

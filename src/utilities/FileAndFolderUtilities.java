@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 
 import model.AFileOrAFolder;
 import model.AFolder;
@@ -43,6 +41,8 @@ public class FileAndFolderUtilities {
                 
             }
             
+            Collections.sort(returnValue.getFileOrFolderList(), (a, b) -> a.getName().compareTo(b.getName()));
+            
             return returnValue;
             
     	} else {
@@ -52,6 +52,5 @@ public class FileAndFolderUtilities {
     	}
     
     }
-
 
 }

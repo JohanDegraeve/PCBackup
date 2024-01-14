@@ -1,14 +1,27 @@
 package model;
 
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+
 import java.util.ArrayList;
 
+//AFileOrAFolder class
 public class AFolder extends AFileOrAFolder {
 
 	/**
 	 * the list of instance of AFileOrAFolder
 	 */
 	private List<AFileOrAFolder> fileOrFolderList;
+	
+	/**
+	 * created to allow json deserialisation
+	 */
+	public AFolder() {
+		super();
+	}
 	
 	public AFolder(String name, String pathToBackup) {
 		
@@ -33,9 +46,4 @@ public class AFolder extends AFileOrAFolder {
         fileOrFolderList.add(fileOrFolder);
     }
     
-	@Override
-	public boolean isFile() {
-		return false;
-	}
-
 }
