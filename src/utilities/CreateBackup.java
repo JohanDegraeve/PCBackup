@@ -2,10 +2,13 @@ package utilities;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -127,4 +130,23 @@ public class CreateBackup {
 
 	}
 	
+    public static Path getMostRecentBackup(Path backupFolder) throws IOException {
+        List<Path> backupFolders = getAllBackupFolders(backupFolder);
+        return Collections.max(backupFolders);
+    }
+
+    private static List<Path> getAllBackupFolders(Path backupFolder) throws IOException {
+        List<Path> backupFolders = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(backupFolder, entry -> Files.isDirectory(entry) && isValidBackupFolder(entry))) {
+            for (Path entry : directoryStream) {
+                backupFolders.add(entry);
+            }
+        }
+        return backupFolders;
+    }
+
+    private static boolean isValidBackupFolder(Path folder) {
+        String folderName = folder.getFileName().toString();
+        return folderName.matches("\\d{4}-\\d{2}-\\d{2} \\d{2};\\d{2};\\d{2} (Full|Incremental)");
+    }
 }

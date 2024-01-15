@@ -5,6 +5,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 
 import model.AFileOrAFolder;
 import model.AFolder;
@@ -52,5 +53,68 @@ public class FileAndFolderUtilities {
     	}
     
     }
+    
+        public static void compareAndUpdate(AFileOrAFolder source, AFileOrAFolder dest) {
+        	
+            // Compare and update files and folders
+            if (source instanceof AFile  && dest instanceof AFile) {
+                // Compare and update files
+                compareAndUpdateFiles((AFile) source, (AFile) dest);
+            } else if (!(source instanceof AFile) && !(dest instanceof AFile)) {
+                // Compare and update folders
+                compareAndUpdateFolders((AFolder) source, (AFolder) dest);
+            } else {
+            	Logger.log("in compareAndUpdate(AFileOrAFolder source, AFileOrAFolder dest), not both File and not both Folder");
+            }
+        }
+
+        private static void compareAndUpdateFiles(AFile sourceFile, AFile destFile) {
+            // Compare and update files based on last modified timestamp
+            if (sourceFile.getts() > destFile.getts()) {
+                // Update destFile with the new timestamp
+                destFile.setts(sourceFile.getts());
+                Logger.log("setting ts for " + destFile.getName() + " to " + destFile.getts());
+            } 
+        }
+
+        private static void compareAndUpdateFolders(AFolder sourceFolder, AFolder destFolder) {
+            // Compare and update folders based on content
+            List<AFileOrAFolder> sourceContents = sourceFolder.getFileOrFolderList();
+            List<AFileOrAFolder> destContents = destFolder.getFileOrFolderList();
+
+            // Process files and folders in source
+            for (AFileOrAFolder sourceItem : sourceContents) {
+                // Find the corresponding item in dest
+                AFileOrAFolder matchingDestItem = findMatchingItem(sourceItem, destContents);
+
+                if (matchingDestItem == null) {
+                    // Item in source doesn't exist in dest, add it
+                    destContents.add(sourceItem);
+                	Logger.log("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), adding " + sourceItem.getName() + " to " + destFolder.getName());
+                } else {
+                    // Recursively compare and update the matching items
+                    compareAndUpdate(sourceItem, matchingDestItem);
+                }
+            }
+
+            // Process items in dest that don't exist in source
+            if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
+            	Logger.log("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), did remove one or more items form  " + destFolder.getName());
+            }
+        }
+
+        private static AFileOrAFolder findMatchingItem(AFileOrAFolder sourceItem, List<AFileOrAFolder> destContents) {
+            // Find an item in dest with the same name as the sourceItem
+            return destContents.stream()
+                    .filter(destItem -> destItem.getName().equals(sourceItem.getName()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        private static boolean containsItem(AFileOrAFolder item, List<AFileOrAFolder> itemList) {
+            // Check if itemList contains an item with the same name as the specified item
+            return itemList.stream().anyMatch(existingItem -> existingItem.getName().equals(item.getName()));
+        }
+
 
 }

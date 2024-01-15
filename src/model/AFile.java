@@ -1,10 +1,5 @@
 package model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-
 //AFileOrAFolder class
 public class AFile extends AFileOrAFolder {
 
