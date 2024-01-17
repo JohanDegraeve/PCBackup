@@ -17,7 +17,7 @@ import model.AFile;
 import model.AFileOrAFolder;
 import model.AFolder;
 
-public class CreateBackup {
+public class CreateFullBackup {
 
 	/**
 	 * create a full backup

@@ -1,5 +1,6 @@
 package main;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
@@ -7,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Date;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,10 +17,12 @@ import model.AFileOrAFolder;
 import model.AFolder;
 import model.CommandLineArguments;
 import model.CommandLineArguments.ArgumentName;
-import utilities.CreateBackup;
+import utilities.CreateFullBackup;
 import utilities.CreateSubFolder;
 import utilities.FileAndFolderUtilities;
+import utilities.ListBackupsInFolder;
 import utilities.Logger;
+import utilities.WriteToFile;
 
 public class BackupMainClass {
 
@@ -31,6 +34,32 @@ public class BackupMainClass {
 		 * where to find the source files
 		 */
         Path sourceFolderPath = Paths.get(CommandLineArguments.getInstance().getArgumentValue(ArgumentName.source));
+        
+        /**
+         * main path for backup, this is the backup folder path without the specific folder (ie without '2023-12-06 18;24;41 (Full)' or anything like that)
+         */
+        Path destinationFolderPath = Paths.get(CommandLineArguments.getInstance().getArgumentValue(ArgumentName.destination));
+
+        /**
+         * path to previous most recent backup, either Full or Incremental. 
+         */
+    	Path mostRecentBackupPath = null;
+    	// Get it now, if it exists before we create the new backup folder
+    	try {
+    		mostRecentBackupPath = ListBackupsInFolder.getMostRecentBackup(destinationFolderPath);
+		} catch (IOException e) {
+			e.printStackTrace();
+            Logger.log("Exception in main, while getting list of backups");
+            Logger.log(e.toString());
+            System.exit(1);
+		}
+    	if (mostRecentBackupPath == null && CommandLineArguments.getInstance().getArgumentValue(ArgumentName.type).equalsIgnoreCase("I")) {
+    		Logger.log("In Main, mostRecentBackup is null and you're asking an incremental backup. check the destination folder. Maybe it's the first time you take a backup? and there's no backup yet? " + destinationFolderPath.toString()); 
+    		System.exit(1);
+    	} else {
+        	System.out.println("mostRecentBackupPath = " + mostRecentBackupPath.toString());
+    	}
+
 
         // create backupfoldername for the backup, this folder will be created within destination folder
         // example for full backup : '2023-12-06 18;24;41 (Full)'
@@ -50,7 +79,7 @@ public class BackupMainClass {
         /**
          * where to write the backup, this includes the backupfoldername, like '2023-12-06 18;24;41 (Full)' or '2023-12-28 17;07;13 (Incremental)'
          */
-        Path destinationFolderPath = CreateSubFolder.createSubFolder(CommandLineArguments.getInstance().getArgumentValue(ArgumentName.destination), backupfoldername);
+        Path destinationFolderPathSubFolder = CreateSubFolder.createSubFolder(CommandLineArguments.getInstance().getArgumentValue(ArgumentName.destination), backupfoldername);
 
     	// first we make a list of files and folder in the sourceFolderPath,
         // for each file or folder we create an instance of AFileOrAFolder
@@ -72,7 +101,7 @@ public class BackupMainClass {
 
             // this sorts the list by name of the folders and files in  the directory, not the files in the folders within those folders
             //   (that's done in the function createAFileOrAFolder itself)
-            Collections.sort(listOfFilesAndFoldersInSourceFolder.getFileOrFolderList(), (a, b) -> a.getName().compareTo(b.getName()));
+            //Collections.sort(listOfFilesAndFoldersInSourceFolder.getFileOrFolderList(), (a, b) -> a.getName().compareTo(b.getName()));
             
             
         } catch (IOException e) {
@@ -84,15 +113,11 @@ public class BackupMainClass {
         
         //if option is F, then create full backup
         if (CommandLineArguments.getInstance().getArgumentValue(ArgumentName.type).equalsIgnoreCase("F")) {
-            CreateBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPath);
+            CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder);
         } else {
-        	
-        	// incremental backup
-        	
-        	// TODO : find the previous incremental backup, or the last full backup
-        	// now we do it with known backup
-            String previousBackupJsonFile = "/Users/johandegraeve/Downloads/backup/2024-01-14 01;21;44 (Full)/folderlist.json";
-            Path filePath = Paths.get(previousBackupJsonFile);
+        	        	
+        	// read folderlist.json of in most recent backup folder
+            String previousBackupJsonFile = mostRecentBackupPath.toString() + "/folderlist.json";
 
             // declare and init listOfFilesAndFoldersInPreviousBackupFolder
             // it's null, but we assume that it will be set to non nul value, or an exception will occur causing a crash
@@ -101,7 +126,7 @@ public class BackupMainClass {
             try {
 
                 ObjectMapper objectMapper = new ObjectMapper();
-                listOfFilesAndFoldersInPreviousBackupFolder = objectMapper.readValue(Files.readString(filePath, StandardCharsets.UTF_8), AFileOrAFolder.class);
+                listOfFilesAndFoldersInPreviousBackupFolder = objectMapper.readValue(Files.readString(Paths.get(previousBackupJsonFile), StandardCharsets.UTF_8), AFileOrAFolder.class);
                 
             } catch (IOException e) {
                 // Handle IOException (e.g., file not found or permission issues)
@@ -111,7 +136,38 @@ public class BackupMainClass {
                 System.exit(1);
             }
             
-            FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSourceFolder, listOfFilesAndFoldersInPreviousBackupFolder);
+            // we know for sure that both listOfFilesAndFoldersInSourceFolder and listOfFilesAndFoldersInPreviousBackupFolder are instance of AFolder
+            // let's check anyway
+            if (!(listOfFilesAndFoldersInSourceFolder instanceof AFolder)) {Logger.log("listOfFilesAndFoldersInSourceFolder is not an instance of AFolder");System.exit(1);} 
+            if (!(listOfFilesAndFoldersInPreviousBackupFolder instanceof AFolder)) {Logger.log("listOfFilesAndFoldersInPreviousBackupFolder is not an instance of AFolder");System.exit(1);}
+            // set the name of the first folder to "", because this may be the original main folder name which we don't need
+            listOfFilesAndFoldersInSourceFolder.setName("");
+            listOfFilesAndFoldersInPreviousBackupFolder.setName("");
+            FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSourceFolder, listOfFilesAndFoldersInPreviousBackupFolder, sourceFolderPath, destinationFolderPathSubFolder, new ArrayList<String>());
+            
+            /**
+        	 * needed for json encoding
+        	 */
+        	ObjectMapper objectMapper = new ObjectMapper();
+        	
+        	String destFolderToJson = "";
+        	
+            try {
+            	
+            	// json encoding of listOfFilesAndFoldersInPreviousBackupFolder which is now the new backup
+            	destFolderToJson = objectMapper.writeValueAsString(listOfFilesAndFoldersInPreviousBackupFolder);
+            	
+            } catch (IOException e) {
+            	e.printStackTrace();
+                Logger.log("Exception in main, while creating json for listOfFilesAndFoldersInPreviousBackupFolder");
+                Logger.log(e.toString());
+                System.exit(1);
+            }
+
+            // now write the file folderlist.json to the backup folder
+    		// first write the json file to destination folder
+    		WriteToFile.writeToFile(destFolderToJson, destinationFolderPathSubFolder.toString() + File.separator + "folderlist.json");
+
             
             System.out.println("done");
             
