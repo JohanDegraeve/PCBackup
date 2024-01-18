@@ -61,9 +61,7 @@ public class CreateFullBackup {
 
 		for (AFileOrAFolder aFileOrAFolder: listOfFilesAndFoldersInSourceFolder) {
 			
-			// the argument aFileOrAFolderSourceFolder is here a full path, inclusive the
-			
-			// add filename to source and destination folders
+			// add folder or filename to source and destination folders
 			Path sourcePathToCopyFrom = sourceFolderPath.resolve(aFileOrAFolder.getName());
 			Path destinationPathToCopyTo = destinationFolderPath.resolve(aFileOrAFolder.getName());
 			
@@ -74,8 +72,7 @@ public class CreateFullBackup {
 				
 				try {
 					
-					// check if destinationPathToCopyTo exists, if not created it
-					createSubFolderIfNotExisting(destinationPathToCopyTo);
+					// no need to create the subfolder here because, as we create all (even empty) folders in the full backup, it's already there
 					
 					Files.copy(sourcePathToCopyFrom, destinationPathToCopyTo, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
 					

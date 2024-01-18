@@ -1,10 +1,15 @@
 package model;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,7 +25,7 @@ public class CommandLineArguments {
 	/**
 	 * Enum to represent argument names
 	 */
-    public enum ArgumentName {
+    private enum ArgumentName {
     	
     	/**
     	 * Folder where the actual source that we're backing up is stored<br>
@@ -44,11 +49,44 @@ public class CommandLineArguments {
          * F for full<br>
          * I for incremental<br>
          */
-        type
+        type,
+        
+        /**
+         * filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups<br>
+         */
+        excludedfilelist
         
         // Add more argument names as needed
         
     }
+    
+    /**
+	 * Folder where the actual source that we're backing up is stored<br>
+	 * This is the full path, example E:\sourcefolder\
+	 */
+    public String source;
+    
+    /**
+     * Folder where we store the backups, either full or incremental.<br>
+     * Each time we create a new backup, a subfolder will be created in that folder 
+     */
+    public String destination;
+    
+    /**
+     * If true, full backup, if false, incremental backup
+     */
+    public boolean fullBackup = false;
+    
+    /**
+     *  Folder where logfile should be written<br>
+     *  can be null, in that case log to System.out
+     */
+    public String logfilefolder;
+    
+    /**
+     * filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups<br>
+     */
+    public List<String> excludedFiles = new ArrayList<>();
     
 	/**
 	 * valid argument names, build based on the Enum ArgumentName
@@ -67,50 +105,82 @@ public class CommandLineArguments {
 	 */
     private CommandLineArguments() {
         
-    	if (getArgumentValue(ArgumentName.source) == null) {
+    	source = getArgumentValue(ArgumentName.source);
+    	if (source == null) {
     		System.out.println("source argument is missing");
-    		giveMinimumArgumentsInfo();
-    		System.exit(1);
+    		giveMinimumArgumentsInfo();System.exit(1);
+    	} else {
+        	// check if source folder exists
+        	Path folderPath = Paths.get(source);
+        	if (!(Files.exists(folderPath))) {
+        		System.out.println("folder " + source + " does not exist. Create it first or check the argument 'source'");
+        		giveMinimumArgumentsInfo();System.exit(1);
+        	}
     	}
     	
-    	if (getArgumentValue(ArgumentName.destination) == null) {
+    	destination = getArgumentValue(ArgumentName.destination);
+    	if (destination == null) {
     		System.out.println("destination argument is missing");
-    		giveMinimumArgumentsInfo();
-    		System.exit(1);
+    		giveMinimumArgumentsInfo();System.exit(1);
+    	} else {
+        	// check if destination folder exists
+        	Path folderPath = Paths.get(destination);
+        	if (!(Files.exists(folderPath))) {
+        		System.out.println("folder " + destination + " does not exist. Create it first or check the argument 'destination'");
+        		giveMinimumArgumentsInfo();System.exit(1);
+        	}
     	}
     	
     	if (getArgumentValue(ArgumentName.type) == null) {
     		System.out.println("type argument is missing");
-    		giveMinimumArgumentsInfo();
-    		System.exit(1);
+    		giveMinimumArgumentsInfo();System.exit(1);
+    	} else {
+    		if (getArgumentValue(ArgumentName.type).equalsIgnoreCase("F")) {
+    			fullBackup = true;
+    		}
     	}
     	
+    	logfilefolder = getArgumentValue(ArgumentName.logfilefolder);
     	// if logfilefolderfile is present, then check if it's a directory
-    	if (getArgumentValue(ArgumentName.logfilefolder) != null) {
-    		if (!(Files.isDirectory(Paths.get(getArgumentValue(ArgumentName.logfilefolder))))) {
+    	if (logfilefolder != null) {
+    		if (!(Files.isDirectory(Paths.get(logfilefolder)))) {
     			System.out.println("logfilefolder should be a directory");
-    			System.exit(1);
+    			giveMinimumArgumentsInfo();System.exit(1);
     		} else {
-    			if (!(Files.exists(Paths.get(getArgumentValue(ArgumentName.logfilefolder))))) {
+    			if (!(Files.exists(Paths.get(logfilefolder)))) {
     				System.out.println("logfilefolder does not exist");
-    				System.exit(1);
+    				giveMinimumArgumentsInfo();System.exit(1);
     			}
     		}
     		
     	}
     	
-    	// check if destination folder exists
-    	Path folderPath = Paths.get(getArgumentValue(ArgumentName.destination));
-    	if (!(Files.exists(folderPath))) {
-    		System.out.println("folder " + folderPath.toString() + " does not exist. Create it first or check the argument 'destination'");
-    		System.exit(1);
-    	}
-    	
-    	// check if source folder exists
-    	folderPath = Paths.get(getArgumentValue(ArgumentName.source));
-    	if (!(Files.exists(folderPath))) {
-    		System.out.println("folder " + folderPath.toString() + " does not exist. Create it first or check the argument 'source'");
-    		System.exit(1);
+    	String excludedfilelist = getArgumentValue(ArgumentName.excludedfilelist);
+    	if (excludedfilelist != null) {
+    		
+    		Path folderPath = Paths.get(excludedfilelist);
+    		
+    		if (Files.isDirectory(folderPath)) {
+    			System.out.println("You specified file " + excludedfilelist + " as excludedfilelist but it does not exist. Create it is a directory, not a file'excludedfilelist'");
+    			giveMinimumArgumentsInfo();System.exit(1);
+    		}
+    		
+        	if (!(Files.exists(folderPath))) {
+        		System.out.println("You specified file " + excludedfilelist + " as excludedfilelist but it does not exist. Create it first or check the argument 'excludedfilelist'");
+        		giveMinimumArgumentsInfo();System.exit(1);
+        	}
+        	
+        	try (BufferedReader reader = new BufferedReader(new FileReader(excludedfilelist))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    excludedFiles.add(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("logfilefolder does not exist");
+				giveMinimumArgumentsInfo();System.exit(1);
+            }
+        	
     	}
     	
     }
@@ -190,16 +260,16 @@ public class CommandLineArguments {
                     argumentMap.put(argName, argValue);
                  } else {
                     System.out.println("Invalid argument value for " + argName + ": " + argValue);
-                    giveMinimumArgumentsInfo();
+                    giveMinimumArgumentsInfo();System.exit(1);
                  }
              } else {
                     System.out.println("Invalid argument name: " + argName);
-                    giveMinimumArgumentsInfo();
+                    giveMinimumArgumentsInfo();System.exit(1);
              }
                 
             } else {
                 System.out.println("Invalid argument format. Argument name must start with '--': " + arg);
-                giveMinimumArgumentsInfo();
+                giveMinimumArgumentsInfo();System.exit(1);
             }
         }
 
@@ -252,6 +322,8 @@ public class CommandLineArguments {
             		return false;
             	}
             	return true;
+            case "excludedfilelist":
+            	return true;
             // Add more cases for other argument names as needed
 
             default:
@@ -272,6 +344,7 @@ public class CommandLineArguments {
     	System.out.println("");
     	System.out.println("Optional arguments:");
     	System.out.println("  --logfilefolder: location of the logfile, just the folder name, it must exist.");
+    	System.out.println("  --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.");
     }
     
 }

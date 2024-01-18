@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import model.AFileOrAFolder;
 import model.AFolder;
 import model.CommandLineArguments;
-import model.CommandLineArguments.ArgumentName;
 import utilities.CreateFullBackup;
 import utilities.CreateSubFolder;
 import utilities.FileAndFolderUtilities;
@@ -28,17 +27,18 @@ public class BackupMainClass {
 
     public static void main(String[] args) {
     	
-        CommandLineArguments.getInstance(args);
+    	// initialize
+        CommandLineArguments commandLineArguments = CommandLineArguments.getInstance(args);
         
 		/**
 		 * where to find the source files
 		 */
-        Path sourceFolderPath = Paths.get(CommandLineArguments.getInstance().getArgumentValue(ArgumentName.source));
+        Path sourceFolderPath = Paths.get(commandLineArguments.source);
         
         /**
          * main path for backup, this is the backup folder path without the specific folder (ie without '2023-12-06 18;24;41 (Full)' or anything like that)
          */
-        Path destinationFolderPath = Paths.get(CommandLineArguments.getInstance().getArgumentValue(ArgumentName.destination));
+        Path destinationFolderPath = Paths.get(commandLineArguments.destination);
 
         /**
          * path to previous most recent backup, either Full or Incremental. 
@@ -53,10 +53,10 @@ public class BackupMainClass {
             Logger.log(e.toString());
             System.exit(1);
 		}
-    	if (mostRecentBackupPath == null && CommandLineArguments.getInstance().getArgumentValue(ArgumentName.type).equalsIgnoreCase("I")) {
+    	if (mostRecentBackupPath == null && !commandLineArguments.fullBackup) {
     		Logger.log("In Main, mostRecentBackup is null and you're asking an incremental backup. check the destination folder. Maybe it's the first time you take a backup? and there's no backup yet? " + destinationFolderPath.toString()); 
     		System.exit(1);
-    	} else {
+    	} else if (mostRecentBackupPath != null) {
         	System.out.println("mostRecentBackupPath = " + mostRecentBackupPath.toString());
     	}
 
@@ -70,7 +70,7 @@ public class BackupMainClass {
          * So if we have destinationFolderPath, then destinationFolderPath/backupfoldername will contain the copied files and folders
          */
 		String backupfoldername = dateFormat.format(new Date());
-        if (CommandLineArguments.getInstance().getArgumentValue(ArgumentName.type).equalsIgnoreCase("F")) {
+        if (commandLineArguments.fullBackup) {
         	backupfoldername = backupfoldername + " (Full)";
         } else {
         	backupfoldername = backupfoldername + " (Incremental)";
@@ -79,7 +79,7 @@ public class BackupMainClass {
         /**
          * where to write the backup, this includes the backupfoldername, like '2023-12-06 18;24;41 (Full)' or '2023-12-28 17;07;13 (Incremental)'
          */
-        Path destinationFolderPathSubFolder = CreateSubFolder.createSubFolder(CommandLineArguments.getInstance().getArgumentValue(ArgumentName.destination), backupfoldername);
+        Path destinationFolderPathSubFolder = CreateSubFolder.createSubFolder(commandLineArguments.destination, backupfoldername);
 
     	// first we make a list of files and folder in the sourceFolderPath,
         // for each file or folder we create an instance of AFileOrAFolder
@@ -94,7 +94,12 @@ public class BackupMainClass {
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sourceFolderPath)) {
             	
                 for (Path path : directoryStream) {
-                	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername));                	
+                	if (!(Files.isDirectory(path))) {
+                		if (commandLineArguments.excludedFiles.contains(path.getFileName().toString())) {
+                    		continue;
+                		}
+                	}
+                	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername, commandLineArguments.excludedFiles));                	
                 }
                 
             }
@@ -112,7 +117,7 @@ public class BackupMainClass {
         }
         
         //if option is F, then create full backup
-        if (CommandLineArguments.getInstance().getArgumentValue(ArgumentName.type).equalsIgnoreCase("F")) {
+        if (commandLineArguments.fullBackup) {
             CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder);
         } else {
         	        	

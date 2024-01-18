@@ -22,11 +22,11 @@ public class FileAndFolderUtilities {
      * @param folderOrStringPath can be path to a folder or a file
      * @param backupFolderName just a foldername of the full or incremental backup where to find the file, example '2024-01-12 16;46;55 (Full)' This is actually not used just stored in an instance of AFile (not if it's a folder) 
      * @return an instance of either a folder or a file
+     * @param excludefilelist array of strings that should be ignored as filename
      * @throws IOException
      */
-    public static AFileOrAFolder createAFileOrAFolder(Path folderOrStringPath, String backupFolderName) throws IOException {
+    public static AFileOrAFolder createAFileOrAFolder(Path folderOrStringPath, String backupFolderName, List<String> excludefilelist) throws IOException {
 
-    	//String fileOrFolderNameWithoutFullPath = path.toString().substring(path.toString().length() + 1);
     	String fileOrFolderNameWithoutFullPath = folderOrStringPath.getFileName().toString();
 
     	if (Files.isDirectory(folderOrStringPath)) {
@@ -36,8 +36,15 @@ public class FileAndFolderUtilities {
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(folderOrStringPath)) {
             	
                 for (Path path : directoryStream) {
-                	                	
-                	returnValue.addFileOrFolder(createAFileOrAFolder(path, backupFolderName));
+                	   
+                	//  if it's a file, check if it's in the excludefilelist
+                	if (!(Files.isDirectory(path))) {
+                		if (excludefilelist.contains(path.getFileName().toString())) {
+                    		continue;
+                		}
+                	}
+                	
+                	returnValue.addFileOrFolder(createAFileOrAFolder(path, backupFolderName, excludefilelist));
                 		
                 }
                 
@@ -164,7 +171,7 @@ public class FileAndFolderUtilities {
 
             // Process items in dest that don't exist in source
             if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
-            	Logger.log("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), did remove one or more items form  " + destFolder.getName());
+            	Logger.log("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), did remove one or more items from  " + destFolder.getName());
             }
         }
 

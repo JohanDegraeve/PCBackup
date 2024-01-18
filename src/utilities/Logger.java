@@ -6,7 +6,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import model.CommandLineArguments;
-import model.CommandLineArguments.ArgumentName;
 
 public class Logger {
 
@@ -43,7 +42,7 @@ public class Logger {
 			return;
 		}
 		
-		if (CommandLineArguments.getInstance().getArgumentValue(ArgumentName.logfilefolder) != null) {
+		if (CommandLineArguments.getInstance().logfilefolder != null) {
 			// TODO : write to logfile
 		}
 		
