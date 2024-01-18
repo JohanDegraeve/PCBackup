@@ -45,6 +45,10 @@ public abstract class AFileOrAFolder {
 		return pathToBackup;
 	}
 
+	public void setPathToBackup(String pathToBackup) {
+		this.pathToBackup = pathToBackup;
+	}
+
 	/**
 	 * getter for name of the file or folder
 	 * 

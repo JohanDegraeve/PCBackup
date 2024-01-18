@@ -148,7 +148,7 @@ public class BackupMainClass {
             // set the name of the first folder to "", because this may be the original main folder name which we don't need
             listOfFilesAndFoldersInSourceFolder.setName("");
             listOfFilesAndFoldersInPreviousBackupFolder.setName("");
-            FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSourceFolder, listOfFilesAndFoldersInPreviousBackupFolder, sourceFolderPath, destinationFolderPathSubFolder, new ArrayList<String>());
+            FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSourceFolder, listOfFilesAndFoldersInPreviousBackupFolder, sourceFolderPath, destinationFolderPathSubFolder, new ArrayList<String>(), backupfoldername);
             
             /**
         	 * needed for json encoding

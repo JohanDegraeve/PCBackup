@@ -77,27 +77,30 @@ public class FileAndFolderUtilities {
     	 * @param sourceFileOrFolder instance of AFileOrAFolder that represents the contents in sourceFolderPath
     	 * @param subfolders is an arraylist of strings, representing the subfolders. We need to pass them through as we go recursively through the function. It's needed in case a file copy needs to be made to make sure we put it in the right folder.
     	 */
-        public static void compareAndUpdate(AFileOrAFolder sourceFileOrFolder, AFileOrAFolder destFileOrFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders) {
+        public static void compareAndUpdate(AFileOrAFolder sourceFileOrFolder, AFileOrAFolder destFileOrFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
         	
             // Compare and update files and folders
             if (sourceFileOrFolder instanceof AFile  && destFileOrFolder instanceof AFile) {
                 // Compare and update files
-                compareAndUpdateFiles((AFile) sourceFileOrFolder, (AFile) destFileOrFolder, sourceFolderPath, destBackupFolderPath, subfolders);
+                compareAndUpdateFiles((AFile) sourceFileOrFolder, (AFile) destFileOrFolder, sourceFolderPath, destBackupFolderPath, subfolders, backupFolderName);
             } else if (!(sourceFileOrFolder instanceof AFile) && !(destFileOrFolder instanceof AFile)) {
                 // Compare and update folders
-                compareAndUpdateFolders((AFolder) sourceFileOrFolder, (AFolder) destFileOrFolder, sourceFolderPath, destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFileOrFolder.getName()));
+                compareAndUpdateFolders((AFolder) sourceFileOrFolder, (AFolder) destFileOrFolder, sourceFolderPath, destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFileOrFolder.getName()), backupFolderName);
             } else {
             	Logger.log("in compareAndUpdate(AFileOrAFolder source, AFileOrAFolder dest), not both File and not both Folder");
             }
         }
 
-        private static void compareAndUpdateFiles(AFile sourceFile, AFile destFile, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders) {
+        private static void compareAndUpdateFiles(AFile sourceFile, AFile destFile, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
             // Compare and update files based on last modified timestamp
             if (sourceFile.getts() > destFile.getts()) {
             	
                 // Update destFile with the new timestamp
                 destFile.setts(sourceFile.getts());
                 Logger.log("setting ts for " + destFile.getName() + " to " + destFile.getts() + " and copying to backup");
+                
+                // set also the backup foldername
+                destFile.setPathToBackup(backupFolderName);
                 
                 // create the folder in the destination if it doesn't exist yet
                 try {
@@ -122,7 +125,7 @@ public class FileAndFolderUtilities {
             } 
         }
 
-        private static void compareAndUpdateFolders(AFolder sourceFolder, AFolder destFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders) {
+        private static void compareAndUpdateFolders(AFolder sourceFolder, AFolder destFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
             // Compare and update folders based on content
             List<AFileOrAFolder> sourceContents = sourceFolder.getFileOrFolderList();
             List<AFileOrAFolder> destContents = destFolder.getFileOrFolderList();
@@ -165,7 +168,7 @@ public class FileAndFolderUtilities {
                 	
                 } else {
                     // Recursively compare and update the matching items
-                    compareAndUpdate(sourceItem, matchingDestItem, sourceFolderPath, destBackupFolderPath, subfolders);
+                    compareAndUpdate(sourceItem, matchingDestItem, sourceFolderPath, destBackupFolderPath, subfolders, backupFolderName);
                 }
             }
 
