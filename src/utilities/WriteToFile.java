@@ -14,6 +14,7 @@ public class WriteToFile {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(path))) {
         	
             writer.write(textToWrite);
+            writer.flush();
             Logger.log("Json written to file " + path);
         } catch (IOException e) {
             e.printStackTrace();

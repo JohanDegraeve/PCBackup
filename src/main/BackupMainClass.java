@@ -21,6 +21,7 @@ import utilities.CreateSubFolder;
 import utilities.FileAndFolderUtilities;
 import utilities.ListBackupsInFolder;
 import utilities.Logger;
+import utilities.OtherUtilities;
 import utilities.WriteToFile;
 
 public class BackupMainClass {
@@ -95,8 +96,13 @@ public class BackupMainClass {
             	
                 for (Path path : directoryStream) {
                 	if (!(Files.isDirectory(path))) {
+                		// check if the file is in the list of files to exclude, example .DS_Store
                 		if (commandLineArguments.excludedFiles.contains(path.getFileName().toString())) {
                     		continue;
+                		}
+                		// check if the file is of format .849C9593-D756-4E56-8D6E-42412F2A707B seems a Microsoft hidden file
+                		if (OtherUtilities.fileNeedsToBeIgnored(path.getFileName().toString())) {
+                			continue;
                 		}
                 	}
                 	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername, commandLineArguments.excludedFiles));                	

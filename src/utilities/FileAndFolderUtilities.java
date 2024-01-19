@@ -39,9 +39,17 @@ public class FileAndFolderUtilities {
                 	   
                 	//  if it's a file, check if it's in the excludefilelist
                 	if (!(Files.isDirectory(path))) {
+                		
+                		// check if the file is in the list of files to exclude, example .DS_Store
                 		if (excludefilelist.contains(path.getFileName().toString())) {
                     		continue;
                 		}
+                		
+                		// check if the file is of format .849C9593-D756-4E56-8D6E-42412F2A707B seems a Microsoft hidden file
+                		if (OtherUtilities.fileNeedsToBeIgnored(path.getFileName().toString())) {
+                			continue;
+                		}
+                		
                 	}
                 	
                 	returnValue.addFileOrFolder(createAFileOrAFolder(path, backupFolderName, excludefilelist));
@@ -49,8 +57,6 @@ public class FileAndFolderUtilities {
                 }
                 
             }
-            
-            //Collections.sort(returnValue.getFileOrFolderList(), (a, b) -> a.getName().compareTo(b.getName()));
             
             return returnValue;
             
@@ -136,6 +142,7 @@ public class FileAndFolderUtilities {
                 AFileOrAFolder matchingDestItem = findMatchingItem(sourceItem, destContents);
 
                 if (matchingDestItem == null) {
+                	
                     // Item in source doesn't exist in dest, add it
                     destContents.add(sourceItem);
                 	Logger.log("in compareAndUpdateFolders(AFileOrAFolder, AFileOrAFolder.., adding " + sourceItem.getName() + " to " + destFolder.getName());
@@ -163,6 +170,18 @@ public class FileAndFolderUtilities {
         				}
 
 
+                	} else if (sourceItem instanceof AFolder) {// it has to be an instance of AFolder but let's check anyway
+                		
+                		// we need to copy the complete contents of the folder from source to dest
+                		try {
+							OtherUtilities.copyFolder(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, sourceItem.getName())), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, sourceItem.getName())));
+						} catch (IOException e) {
+							e.printStackTrace();
+        		            Logger.log("Exception in compareAndUpdateFiles(AFileOrAFolder, AFileOrAFolder.. while copying a folder from " + PathUtilities.concatenatePaths(sourceFolderPath, subfolders).toString() + " to " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));
+        		            Logger.log(e.toString());
+        		            System.exit(1);
+						}
+                		
                 	}
                 	
                 	
