@@ -78,6 +78,11 @@ public class CommandLineArguments {
     public boolean fullBackup = false;
     
     /**
+     * is it a backup  or a restore
+     */
+    public boolean backup = true;
+    
+    /**
      *  Folder where logfile should be written<br>
      *  can be null, in that case log to System.out
      */
@@ -137,6 +142,15 @@ public class CommandLineArguments {
     	} else {
     		if (getArgumentValue(ArgumentName.type).equalsIgnoreCase("F")) {
     			fullBackup = true;
+    			backup = true;
+    		} else if (getArgumentValue(ArgumentName.type).equalsIgnoreCase("I")) {
+    			fullBackup = false;
+    			backup = true;
+    		} else if (getArgumentValue(ArgumentName.type).equalsIgnoreCase("R")) {
+    			backup = false;
+    		} else {
+    			System.out.println("Invalid value for type " + getArgumentValue(ArgumentName.type));
+        		giveMinimumArgumentsInfo();System.exit(1);
     		}
     	}
     	
@@ -338,9 +352,13 @@ public class CommandLineArguments {
     */
     private static void giveMinimumArgumentsInfo() {
     	System.out.println("Mandatory arguments:");
-    	System.out.println("  --source: location of the source data that you want to backup, it must be a folder name, the contents will be backedup");
-    	System.out.println("  --destination: location of the destination to where you want to backup");
-    	System.out.println("  --type: F for Full, I for incremental.");
+    	System.out.println("  --type: F for Full backup, I for incremental backup, R for restore.");
+    	System.out.println("  --source:");
+    	System.out.println("            for BACKUP : the folder that you want to backup, the contents will be backedup");
+    	System.out.println("            for RESTORE: the folder where your backup is stored");
+    	System.out.println("  --destination:");
+    	System.out.println("            for BACKUP : folder where you want to backup to");
+    	System.out.println("            for RESTORE: folder to where you want to restore (better not to take the same as the original source, maybe)");
     	System.out.println("");
     	System.out.println("Optional arguments:");
     	System.out.println("  --logfilefolder: location of the logfile, just the folder name, it must exist.");
