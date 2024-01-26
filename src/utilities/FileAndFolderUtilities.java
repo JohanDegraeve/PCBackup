@@ -1,12 +1,15 @@
 package utilities;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.AFileOrAFolder;
 import model.AFolder;
@@ -97,6 +100,35 @@ public class FileAndFolderUtilities {
             }
         }
 
+        /**
+         * 
+         * @param folderlistPath Path for the folderlist.json
+         * @return
+         */
+        public static AFileOrAFolder fromFolderlistDotJsonToAFileOrAFolder(Path folderlistPath) {
+        	
+            // declare and init listOfFilesAndFoldersInPreviousBackupFolder
+            // it's null, but we assume that it will be set to non nul value, or an exception will occur causing a crash
+            AFileOrAFolder listOfFilesAndFoldersInPreviousBackupFolder = null;
+            
+            try {
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                listOfFilesAndFoldersInPreviousBackupFolder = objectMapper.readValue(Files.readString(folderlistPath, StandardCharsets.UTF_8), AFileOrAFolder.class);
+                
+            } catch (IOException e) {
+                // Handle IOException (e.g., file not found or permission issues)
+            	e.printStackTrace();
+                Logger.log("Exception while converting file " + folderlistPath.toString() + " to json");
+                Logger.log(e.toString());
+                System.exit(1);
+            }
+            
+            return listOfFilesAndFoldersInPreviousBackupFolder;
+            
+
+        }
+        
         private static void compareAndUpdateFiles(AFile sourceFile, AFile destFile, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
             // Compare and update files based on last modified timestamp
             if (sourceFile.getts() > destFile.getts()) {

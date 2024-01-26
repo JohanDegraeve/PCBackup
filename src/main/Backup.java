@@ -2,7 +2,6 @@ package main;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -110,11 +109,6 @@ public class Backup {
                 
             }
 
-            // this sorts the list by name of the folders and files in  the directory, not the files in the folders within those folders
-            //   (that's done in the function createAFileOrAFolder itself)
-            //Collections.sort(listOfFilesAndFoldersInSourceFolder.getFileOrFolderList(), (a, b) -> a.getName().compareTo(b.getName()));
-            
-            
         } catch (IOException e) {
             e.printStackTrace();
             Logger.log("Exception in main, while creating list of folders");
@@ -127,25 +121,8 @@ public class Backup {
             CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder);
         } else {
         	        	
-        	// read folderlist.json of in most recent backup folder
-            String previousBackupJsonFile = mostRecentBackupPath.toString() + "/folderlist.json";
-
-            // declare and init listOfFilesAndFoldersInPreviousBackupFolder
-            // it's null, but we assume that it will be set to non nul value, or an exception will occur causing a crash
-            AFileOrAFolder listOfFilesAndFoldersInPreviousBackupFolder = null;
-            
-            try {
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                listOfFilesAndFoldersInPreviousBackupFolder = objectMapper.readValue(Files.readString(Paths.get(previousBackupJsonFile), StandardCharsets.UTF_8), AFileOrAFolder.class);
-                
-            } catch (IOException e) {
-                // Handle IOException (e.g., file not found or permission issues)
-            	e.printStackTrace();
-                Logger.log("Exception while reading previous backup");
-                Logger.log(e.toString());
-                System.exit(1);
-            }
+            // convert folderlist.json in mostrecent backup path to AFileOrAFolder
+            AFileOrAFolder listOfFilesAndFoldersInPreviousBackupFolder = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(mostRecentBackupPath.resolve("folderlist.json"));
             
             // we know for sure that both listOfFilesAndFoldersInSourceFolder and listOfFilesAndFoldersInPreviousBackupFolder are instance of AFolder
             // let's check anyway

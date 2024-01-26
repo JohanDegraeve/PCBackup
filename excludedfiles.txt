@@ -3,3 +3,4 @@ _rd.pbl
 _rf.pbl
 _rrd.pbl
 _rrf.pbl
+folderlist.json
