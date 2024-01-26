@@ -14,7 +14,7 @@ public class BackupMainClass {
     		
     	} else {
     		
-    		
+    		Restore.restore();
     		
     	}
     		

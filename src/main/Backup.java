@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import model.AFileOrAFolder;
 import model.AFolder;
 import model.CommandLineArguments;
+import model.Constants;
 import utilities.CreateFullBackup;
 import utilities.CreateSubFolder;
 import utilities.FileAndFolderUtilities;
@@ -64,7 +65,7 @@ public class Backup {
         // create backupfoldername for the backup, this folder will be created within destination folder
         // example for full backup : '2023-12-06 18;24;41 (Full)'
         // example for incremental backup : '2023-12-28 17;07;13 (Incremental)'
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH;mm;ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.backupFolderDateFormat);
         /**
          * name of the folder within destinationFolderPath, where backup will be placed<br>
          * So if we have destinationFolderPath, then destinationFolderPath/backupfoldername will contain the copied files and folders

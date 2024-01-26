@@ -64,7 +64,7 @@ public class CommandLineArguments {
         /**
          * only needed in case restore is done<br>
          * Specifies date and time for which restore needs to be done<br>
-         * YYYY-MM-DD-HH-mm-ss
+         * "YYYY-MM-DD-HH-mm-ss"
          */
         restoredate,
         
@@ -118,6 +118,13 @@ public class CommandLineArguments {
      */
     public Date restoreDate = null;
     
+    /**
+     * used in case of restore, can be an empty string<br>
+     * not null<br>
+     * Specifies the subfolder within the source to restore 
+     */
+    public String subfolderToRestore = "";
+    
 	/**
 	 * valid argument names, build based on the Enum ArgumentName
 	 */
@@ -133,7 +140,8 @@ public class CommandLineArguments {
 	private static volatile CommandLineArguments instance;
 	
 	/**
-	 * Private constructor to prevent instantiation outside the class
+	 * Private constructor to prevent instantiation outside the class<br>
+	 * Here the arguments are checked for validity
 	 */
     private CommandLineArguments() {
         
@@ -163,6 +171,43 @@ public class CommandLineArguments {
         	}
     	}
     	
+    	logfilefolder = getArgumentValue(ArgumentName.logfilefolder);
+    	// if logfilefolderfile is present, then check if it's a directory
+    	if (logfilefolder != null) {
+    		if (!(Files.isDirectory(Paths.get(logfilefolder)))) {
+    			System.out.println("logfilefolder should be a directory");
+    			giveMinimumArgumentsInfo();System.exit(1);
+    		} else {
+    			if (!(Files.exists(Paths.get(logfilefolder)))) {
+    				System.out.println("logfilefolder does not exist");
+    				giveMinimumArgumentsInfo();System.exit(1);
+    			}
+    		}
+    	}
+    	
+    	String excludedfilelist = getArgumentValue(ArgumentName.excludedfilelist);
+    	if (excludedfilelist != null) {
+    		Path folderPath = Paths.get(excludedfilelist);
+    		if (Files.isDirectory(folderPath)) {
+    			System.out.println("You specified file " + excludedfilelist + " as excludedfilelist but it does not exist. Create it is a directory, not a file'excludedfilelist'");
+    			giveMinimumArgumentsInfo();System.exit(1);
+    		}
+        	if (!(Files.exists(folderPath))) {
+        		System.out.println("You specified file " + excludedfilelist + " as excludedfilelist but it does not exist. Create it first or check the argument 'excludedfilelist'");
+        		giveMinimumArgumentsInfo();System.exit(1);
+        	}
+        	try (BufferedReader reader = new BufferedReader(new FileReader(excludedfilelist))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    excludedFiles.add(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("logfilefolder does not exist");
+				giveMinimumArgumentsInfo();System.exit(1);
+            }
+    	}
+    	
     	if (getArgumentValue(ArgumentName.type) == null) {
     		System.out.println("type argument is missing");
     		giveMinimumArgumentsInfo();System.exit(1);
@@ -180,61 +225,31 @@ public class CommandLineArguments {
         		giveMinimumArgumentsInfo();System.exit(1);
     		}
     	}
-    	
-    	logfilefolder = getArgumentValue(ArgumentName.logfilefolder);
-    	// if logfilefolderfile is present, then check if it's a directory
-    	if (logfilefolder != null) {
-    		if (!(Files.isDirectory(Paths.get(logfilefolder)))) {
-    			System.out.println("logfilefolder should be a directory");
-    			giveMinimumArgumentsInfo();System.exit(1);
-    		} else {
-    			if (!(Files.exists(Paths.get(logfilefolder)))) {
-    				System.out.println("logfilefolder does not exist");
-    				giveMinimumArgumentsInfo();System.exit(1);
-    			}
-    		}
-    		
-    	}
-    	
-    	String restoreDateAsString = getArgumentValue(ArgumentName.restoredate); 
-    	// try to parse the restore data
-        SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD-HH-mm-ss");
-        try {
-			restoreDate = dateFormat.parse(restoreDateAsString);
-		} catch (ParseException e) {
-			e.printStackTrace();
-            System.out.println("restoredate seems to be a wrong format. Expected format = YYYY-MM-DD-HH-mm-ss");
-			giveMinimumArgumentsInfo();System.exit(1);
-		}
 
-    	
-    	String excludedfilelist = getArgumentValue(ArgumentName.excludedfilelist);
-    	if (excludedfilelist != null) {
-    		
-    		Path folderPath = Paths.get(excludedfilelist);
-    		
-    		if (Files.isDirectory(folderPath)) {
-    			System.out.println("You specified file " + excludedfilelist + " as excludedfilelist but it does not exist. Create it is a directory, not a file'excludedfilelist'");
+    	String restoreDateAsString = getArgumentValue(ArgumentName.restoredate); 
+    	if (restoreDateAsString != null && backup) {
+            System.out.println("You gave a restore date but that's not necessary when doing a backup.");
+			giveMinimumArgumentsInfo();System.exit(1);
+    	} else if (restoreDateAsString != null) {
+        	// try to parse the restore data
+            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.restoreDateFormat);
+            try {
+    			restoreDate = dateFormat.parse(restoreDateAsString);
+    		} catch (ParseException e) {
+    			e.printStackTrace();
+                System.out.println("restoredate seems to be a wrong format. Expected format = YYYY-MM-DD-HH-mm-ss");
     			giveMinimumArgumentsInfo();System.exit(1);
     		}
-    		
-        	if (!(Files.exists(folderPath))) {
-        		System.out.println("You specified file " + excludedfilelist + " as excludedfilelist but it does not exist. Create it first or check the argument 'excludedfilelist'");
-        		giveMinimumArgumentsInfo();System.exit(1);
-        	}
-        	
-        	try (BufferedReader reader = new BufferedReader(new FileReader(excludedfilelist))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    excludedFiles.add(line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.out.println("logfilefolder does not exist");
-				giveMinimumArgumentsInfo();System.exit(1);
-            }
-        	
     	}
+
+    	// if a restore is requested but the restoreDate is null, then stop
+    	if (!backup && restoreDate == null) {
+    		System.out.println("Type is restore but no restoredate is given");
+    		giveMinimumArgumentsInfo();System.exit(1);
+    	}
+    	
+    	subfolderToRestore = getArgumentValue(ArgumentName.excludedfilelist);
+    	if (subfolderToRestore == null) {subfolderToRestore = "";}
     	
     }
     
@@ -371,7 +386,7 @@ public class CommandLineArguments {
                 configureLogFile(argValue);
                 return true;
             case "type":
-            	if (!(argValue.startsWith("f") || argValue.startsWith("F") || argValue.startsWith("I") || argValue.startsWith("i"))) {
+            	if (!(argValue.startsWith("f") || argValue.startsWith("F") || argValue.startsWith("I") || argValue.startsWith("i") || argValue.startsWith("R") || argValue.startsWith("r"))) {
             		return false;
             	}
             	return true;
@@ -379,6 +394,12 @@ public class CommandLineArguments {
             	return true;
             // Add more cases for other argument names as needed
 
+            case "restoredate":
+            	return true;
+            	
+            case "subfoldertorestore":
+            	return true;
+            	
             default:
                 // Unknown argument name
                 System.out.println("Unknown argument name: " + argName);
@@ -402,7 +423,8 @@ public class CommandLineArguments {
     	System.out.println("Optional arguments:");
     	System.out.println("  --logfilefolder: location of the logfile, just the folder name, it must exist.");
     	System.out.println("  --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.");
-    	System.out.println("  --restoredate: mandatory if type arguments = R. Date and time for which restore should occur. Format YYYY-MM-DD-HH-mm-ss Restore will copy the files and folders from the last backup before that date and time.");
+    	System.out.println("  --restoredate: mandatory if type arguments = R. Date and time for which restore should occur. Format " + Constants.restoreDateFormat);
+    	System.out.println("  --subfoldertorestore: The specific folder within source that needs to be restored, If the complete backup needs to be restored, then omit this argument, If a specific subfolder needs to be restored, then specify that folder here.");
     }
     
 }
