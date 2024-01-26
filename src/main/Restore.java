@@ -1,19 +1,30 @@
 package main;
 
-/*import java.io.*;
+import java.io.*;
 import java.nio.file.*;
 import java.time.LocalDate;
-import java.util.List;*/
+import java.util.List;
 
-/*
+import model.CommandLineArguments;
+
 public class Restore {
 
 	public static void restore() {
 		
 
-		        String sourceFolder = args[0];
-		        String destinationFolder = args[1];
-		        LocalDate restoreDate = LocalDate.parse(args[2]);
+        CommandLineArguments commandLineArguments = CommandLineArguments.getInstance();
+        
+		/**
+		 * where to find the backup files, this is the backup folder path without the specific folder (ie without '2023-12-06 18;24;41 (Full)' or anything like that)
+		 */
+        Path sourceFolderPath = Paths.get(commandLineArguments.source);
+        
+        /**
+         * where to restore the files
+         */
+        Path destinationFolderPath = Paths.get(commandLineArguments.destination);
+
+
 
 		        // Find the latest backup before the restore date
 		        String backupFolderToRestore = findLatestBackup(sourceFolder, restoreDate);
@@ -90,4 +101,4 @@ public class Restore {
 		
 	}
 	
-}*/
+}

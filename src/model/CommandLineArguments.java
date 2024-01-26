@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -45,16 +48,33 @@ public class CommandLineArguments {
         logfilefolder,
         
         /**
-         * F or I (f or i is also good)<br>
+         * if backup : F or I (f or i is also good)<br>
          * F for full<br>
          * I for incremental<br>
+         * 
+         * if restore : R
          */
         type,
         
         /**
          * filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups<br>
          */
-        excludedfilelist
+        excludedfilelist,
+        
+        /**
+         * only needed in case restore is done<br>
+         * Specifies date and time for which restore needs to be done<br>
+         * YYYY-MM-DD-HH-mm-ss
+         */
+        restoredate,
+        
+        /**
+         * The specific folder within source that needs to be restored<br>
+         * If the complete backup needs to be restored, then omit this argument<br>
+         * If a specific subfolder needs to be restored, then specify that folder here
+         */
+        subfoldertorestore
+        
         
         // Add more argument names as needed
         
@@ -93,6 +113,11 @@ public class CommandLineArguments {
      */
     public List<String> excludedFiles = new ArrayList<>();
     
+    /**
+     * only for restore, Date for which restore needs to be done
+     */
+    public Date restoreDate = null;
+    
 	/**
 	 * valid argument names, build based on the Enum ArgumentName
 	 */
@@ -101,6 +126,8 @@ public class CommandLineArguments {
 	private static final Map<String, String> argumentMap = new HashMap<>();
 	
 	private static boolean argumentsInitialized = false;
+	
+	
 	
 	// Private static instance of the class
 	private static volatile CommandLineArguments instance;
@@ -168,6 +195,18 @@ public class CommandLineArguments {
     		}
     		
     	}
+    	
+    	String restoreDateAsString = getArgumentValue(ArgumentName.restoredate); 
+    	// try to parse the restore data
+        SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD-HH-mm-ss");
+        try {
+			restoreDate = dateFormat.parse(restoreDateAsString);
+		} catch (ParseException e) {
+			e.printStackTrace();
+            System.out.println("restoredate seems to be a wrong format. Expected format = YYYY-MM-DD-HH-mm-ss");
+			giveMinimumArgumentsInfo();System.exit(1);
+		}
+
     	
     	String excludedfilelist = getArgumentValue(ArgumentName.excludedfilelist);
     	if (excludedfilelist != null) {
@@ -363,6 +402,7 @@ public class CommandLineArguments {
     	System.out.println("Optional arguments:");
     	System.out.println("  --logfilefolder: location of the logfile, just the folder name, it must exist.");
     	System.out.println("  --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.");
+    	System.out.println("  --restoredate: mandatory if type arguments = R. Date and time for which restore should occur. Format YYYY-MM-DD-HH-mm-ss Restore will copy the files and folders from the last backup before that date and time.");
     }
     
 }
