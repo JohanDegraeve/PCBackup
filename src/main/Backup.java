@@ -54,7 +54,7 @@ public class Backup {
             System.exit(1);
 		}
     	if (mostRecentBackupPath == null && !commandLineArguments.fullBackup) {
-    		Logger.log("In Main, mostRecentBackup is null and you're asking an incremental backup. check the destination folder. Maybe it's the first time you take a backup? and there's no backup yet? " + destinationFolderPath.toString()); 
+    		Logger.log("You're asking an incremental backup but there's no previous backup. Start with a full backup or check the destination folder."); 
     		System.exit(1);
     	} else if (mostRecentBackupPath != null) {
         	System.out.println("mostRecentBackupPath = " + mostRecentBackupPath.toString());

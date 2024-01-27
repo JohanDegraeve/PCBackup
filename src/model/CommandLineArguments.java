@@ -244,7 +244,7 @@ public class CommandLineArguments {
 
     	// if a restore is requested but the restoreDate is null, then stop
     	if (!backup && restoreDate == null) {
-    		System.out.println("Type is restore but no restoredate is given");
+    		System.out.println("Type is restore but no restoredate is given. Add argument restoredate in format " + Constants.restoreDateFormat);
     		giveMinimumArgumentsInfo();System.exit(1);
     	}
     	

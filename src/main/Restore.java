@@ -92,7 +92,7 @@ public class Restore {
     			
     		} else {
     			
-    			Path sourceToCopy = sourceBackupRootFolder.resolve(sourceItem.getPathToBackup()).resolve(sourceItem.getName());
+    			Path sourceToCopy = sourceBackupRootFolder.resolve(sourceItem.getPathToBackup()).resolve(subfolder).resolve(sourceItem.getName());
     			Path destination = destinationFolder.resolve(subfolder).resolve(sourceItem.getName());
     			
     			try {
@@ -109,8 +109,5 @@ public class Restore {
     		
     	}
     }
-    
-	
-
 	
 }
