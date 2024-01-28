@@ -1,5 +1,5 @@
 # PCBackup
-Java op to Backup and Restore, full and incremental.
+Java app to Backup and Restore, full and incremental.
 
 # Backup
 - Full-backup copies all source files and source folders to another place/disk and creates the file folderlist.json
