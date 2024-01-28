@@ -248,7 +248,7 @@ public class CommandLineArguments {
     		giveMinimumArgumentsInfo();System.exit(1);
     	}
     	
-    	subfolderToRestore = getArgumentValue(ArgumentName.excludedfilelist);
+    	subfolderToRestore = getArgumentValue(ArgumentName.subfoldertorestore);
     	if (subfolderToRestore == null) {subfolderToRestore = "";}
     	
     }

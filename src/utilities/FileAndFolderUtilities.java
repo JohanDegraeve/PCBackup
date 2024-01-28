@@ -129,6 +129,21 @@ public class FileAndFolderUtilities {
 
         }
         
+        /**
+         * search in destContents for sourceItem
+         * @param sourceItem
+         * @param destContents
+         * @return
+         */
+        public static AFileOrAFolder findMatchingItem(AFileOrAFolder sourceItem, List<AFileOrAFolder> destContents) {
+            // Find an item in dest with the same name as the sourceItem
+            return destContents.stream()
+                    .filter(destItem -> destItem.getName().equals(sourceItem.getName()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+
         private static void compareAndUpdateFiles(AFile sourceFile, AFile destFile, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
             // Compare and update files based on last modified timestamp
             if (sourceFile.getts() > destFile.getts()) {
@@ -227,14 +242,6 @@ public class FileAndFolderUtilities {
             if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
             	Logger.log("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), did remove one or more items from  " + destFolder.getName());
             }
-        }
-
-        private static AFileOrAFolder findMatchingItem(AFileOrAFolder sourceItem, List<AFileOrAFolder> destContents) {
-            // Find an item in dest with the same name as the sourceItem
-            return destContents.stream()
-                    .filter(destItem -> destItem.getName().equals(sourceItem.getName()))
-                    .findFirst()
-                    .orElse(null);
         }
 
         private static boolean containsItem(AFileOrAFolder sourceFileOrFolder, List<AFileOrAFolder> fileOrFolderList) {

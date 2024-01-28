@@ -57,7 +57,7 @@ public class Backup {
     		Logger.log("You're asking an incremental backup but there's no previous backup. Start with a full backup or check the destination folder."); 
     		System.exit(1);
     	} else if (mostRecentBackupPath != null) {
-        	System.out.println("mostRecentBackupPath = " + mostRecentBackupPath.toString());
+    		Logger.log("mostRecentBackupPath = " + mostRecentBackupPath.toString());
     	}
 
 
@@ -155,10 +155,8 @@ public class Backup {
             // now write the file folderlist.json to the backup folder
     		// first write the json file to destination folder
     		WriteToFile.writeToFile(destFolderToJson, destinationFolderPathSubFolder.toString() + File.separator + "folderlist.json");
-
             
-            System.out.println("done");
-            
+            System.out.println("Backup finished, see " + destinationFolderPathSubFolder.toString());
 
         }
         
