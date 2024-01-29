@@ -30,68 +30,35 @@ public class Backup {
 		
         CommandLineArguments commandLineArguments = CommandLineArguments.getInstance();
         
+        String sourcesubfolder = "2023-12-06 18;24;41 (Full)";
+        
+        String destinationsubfolder = "2023-12-11 08;39;31 (Incrementeel)";
+        
 		/**
 		 * where to find the source files
 		 */
-        Path sourceFolderPath = Paths.get(commandLineArguments.source);
-        
+        Path sourceFolderPath = Paths.get(commandLineArguments.source).resolve(sourcesubfolder);
+
         /**
          * main path for backup, this is the backup folder path without the specific folder (ie without '2023-12-06 18;24;41 (Full)' or anything like that)
          */
-        Path destinationFolderPath = Paths.get(commandLineArguments.destination);
+        Path destinationFolderPath = Paths.get(commandLineArguments.source).resolve(destinationsubfolder);
 
         /**
          * path to previous most recent backup, either Full or Incremental. 
          */
     	Path mostRecentBackupPath = null;
-    	// Get it now, if it exists before we create the new backup folder
-    	try {
-    		mostRecentBackupPath = ListBackupsInFolder.getMostRecentBackup(destinationFolderPath);
-		} catch (IOException e) {
-			e.printStackTrace();
-            Logger.log("Exception in main, while getting list of backups");
-            Logger.log(e.toString());
-            System.exit(1);
-		}
-    	if (mostRecentBackupPath == null && !commandLineArguments.fullBackup) {
-    		Logger.log("You're asking an incremental backup but there's no previous backup. Start with a full backup or check the destination folder."); 
-    		System.exit(1);
-    	} else if (mostRecentBackupPath != null) {
-    		Logger.log("mostRecentBackupPath = " + mostRecentBackupPath.toString());
-    	}
-
-
-        // create backupfoldername for the backup, this folder will be created within destination folder
-        // example for full backup : '2023-12-06 18;24;41 (Full)'
-        // example for incremental backup : '2023-12-28 17;07;13 (Incremental)'
-        SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.backupFolderDateFormat);
-        /**
-         * name of the folder within destinationFolderPath, where backup will be placed<br>
-         * So if we have destinationFolderPath, then destinationFolderPath/backupfoldername will contain the copied files and folders
-         */
-		String backupfoldername = dateFormat.format(new Date());
-        if (commandLineArguments.fullBackup) {
-        	backupfoldername = backupfoldername + " (Full)";
-        } else {
-        	backupfoldername = backupfoldername + " (Incremental)";
-        }
+    	
+    	
+    	// first read the json file from previous backup, ie source
+        AFileOrAFolder listOfFilesAndFoldersInSource = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(sourceFolderPath.resolve("folderlist.json"));
         
-        /**
-         * where to write the backup, this includes the backupfoldername, like '2023-12-06 18;24;41 (Full)' or '2023-12-28 17;07;13 (Incremental)'
-         */
-        Path destinationFolderPathSubFolder = CreateSubFolder.createSubFolder(commandLineArguments.destination, backupfoldername);
-
-    	// first we make a list of files and folder in the sourceFolderPath,
-        // for each file or folder we create an instance of AFileOrAFolder
-        // Create a DirectoryStream to iterate over the contents of the sourceFolderPath
-        // we create an instance of AFolder to hold the list of files and folders in the source
-        //    although we don't really need the source folder
-        //    this is is done because otherwise the json deserialisation doesn't work
-        AFolder listOfFilesAndFoldersInSourceFolder = new AFolder(sourceFolderPath.toString(), "");
+        // now create a json by analysing the destination folder
+        AFolder listOfFilesAndFoldersInDest = new AFolder(sourceFolderPath.toString(), "");
         
         try {
         	
-            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sourceFolderPath)) {
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(destinationFolderPath)) {
             	
                 for (Path path : directoryStream) {
                 	if (!(Files.isDirectory(path))) {
@@ -104,7 +71,7 @@ public class Backup {
                 			continue;
                 		}
                 	}
-                	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername, commandLineArguments.excludedFiles));                	
+                	listOfFilesAndFoldersInDest.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, destinationsubfolder, commandLineArguments.excludedFiles));                	
                 }
                 
             }
@@ -116,7 +83,10 @@ public class Backup {
             System.exit(1);
         }
         
-        //if option is F, then create full backup
+        // now we should see what is in source but not in dest, add this and use backupfolder = previous one
+        
+        
+        /*//if option is F, then create full backup
         if (commandLineArguments.fullBackup) {
             CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder);
         } else {
@@ -136,7 +106,7 @@ public class Backup {
             /**
         	 * needed for json encoding
         	 */
-        	ObjectMapper objectMapper = new ObjectMapper();
+        	/*ObjectMapper objectMapper = new ObjectMapper();
         	
         	String destFolderToJson = "";
         	
@@ -158,7 +128,7 @@ public class Backup {
             
             System.out.println("Backup finished, see " + destinationFolderPathSubFolder.toString());
 
-        }
+        }*/
         
         
 
