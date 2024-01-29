@@ -84,7 +84,7 @@ public class Backup {
         }
         
         // now we should see what is in source but not in dest, add this and use backupfolder = previous one
-        
+        FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSource, listOfFilesAndFoldersInDest, "", "", null, "");
         
         /*//if option is F, then create full backup
         if (commandLineArguments.fullBackup) {
