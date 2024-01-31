@@ -84,8 +84,31 @@ public class Backup {
         }
         
         // now we should see what is in source but not in dest, add this and use backupfolder = previous one
-        FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSource, listOfFilesAndFoldersInDest, "", "", null, "");
+        FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSource, listOfFilesAndFoldersInDest, null, sourceFolderPath, new ArrayList<String>(), destinationsubfolder);
         
+        /**
+    	 * needed for json encoding
+    	 */
+    	ObjectMapper objectMapper = new ObjectMapper();
+    	
+    	String destFolderToJson = "";
+    	
+        try {
+        	
+        	// json encoding of listOfFilesAndFoldersInPreviousBackupFolder which is now the new backup
+        	destFolderToJson = objectMapper.writeValueAsString(listOfFilesAndFoldersInDest);
+        	
+        } catch (IOException e) {
+        	e.printStackTrace();
+            Logger.log("Exception in main, while creating json for listOfFilesAndFoldersInPreviousBackupFolder");
+            Logger.log(e.toString());
+            System.exit(1);
+        }
+
+		WriteToFile.writeToFile(destFolderToJson, "c:\\temp" + File.separator + "folderlist.json");
+
+		
+        System.out.println("hello");
         /*//if option is F, then create full backup
         if (commandLineArguments.fullBackup) {
             CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder);
