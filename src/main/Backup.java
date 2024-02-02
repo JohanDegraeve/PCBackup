@@ -43,13 +43,13 @@ public class Backup {
          * In case a complete folderlist.json of a full backup is taken, then this folder does not contain a folderlist.json<br>
          * If the goal is to create a folderlist.json for an incremental backup, then this folder already has a folderlist.json<br> 
          */
-        String sourcesubfolder = "2024-02-02 11;38;22 (Incremental)";
+        String sourcesubfolder = "2024-01-12 10;37;09 (Incremental)";
         
         /**
          * needed if goal is to create folderlist.json for an incremental backup<br>
          * Renamed
          */
-        String destinationsubfolder = "2024-02-02 11;39;14 (Incremental)";
+        String destinationsubfolder = "2024-01-19 15;50;20 (Incremental)";
         
 		/**
 		 * source path + sourcesubfolder
