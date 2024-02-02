@@ -165,10 +165,10 @@ public class FileAndFolderUtilities {
                 }
             }
 
-            // Process items in dest that don't exist in source
-            if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
+            // in this case we don't remove items in dest
+            /*if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
             	Logger.log("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), did remove one or more items from  " + destFolder.getName());
-            }
+            }*/
         }
 
         private static boolean containsItem(AFileOrAFolder sourceFileOrFolder, List<AFileOrAFolder> fileOrFolderList) {
