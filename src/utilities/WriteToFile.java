@@ -15,7 +15,7 @@ public class WriteToFile {
         	
             writer.write(textToWrite);
             writer.flush();
-            Logger.log("Json written to file " + path);
+            Logger.log("Folder structure written to file " + path);
         } catch (IOException e) {
             e.printStackTrace();
         }

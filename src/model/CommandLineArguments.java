@@ -134,8 +134,6 @@ public class CommandLineArguments {
 	
 	private static boolean argumentsInitialized = false;
 	
-	
-	
 	// Private static instance of the class
 	private static volatile CommandLineArguments instance;
 	
@@ -251,6 +249,8 @@ public class CommandLineArguments {
     	subfolderToRestore = getArgumentValue(ArgumentName.subfoldertorestore);
     	if (subfolderToRestore == null) {subfolderToRestore = "";}
     	
+    	printeArgumentSummary();
+    	
     }
     
     /**
@@ -294,6 +294,40 @@ public class CommandLineArguments {
         return argumentMap.get(argName.toString());
     }
 
+    private void printeArgumentSummary() {
+    	
+    	System.out.println("You selected following arguments");
+    	if (backup) {
+    		// BACKUP
+    		if (fullBackup) {
+    			System.out.println("   Type :                              full backup");	
+    		} else {
+    			System.out.println("   Type :                              incremental backup");
+    		}
+    		
+    		    System.out.println("   Folder to backup :                  " + source);
+    		    System.out.println("   Destination to backup :             " + destination);
+    		
+    	} else {
+    		// RESTORE
+    		    System.out.println("   Folder where backup is stored :     " + source);
+    		    System.out.println("   Destination to restore to :         " + destination);
+    		    SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.backupFolderDateFormat);
+    			String backupfoldernameJustTheDate = dateFormat.format(restoreDate);
+    		    System.out.println("   Restore date :                      " + backupfoldernameJustTheDate);
+    		    
+    	}
+    
+    	if (logfilefolder != null) {
+    		    System.out.println("   Log file :                          " + logfilefolder);
+    	} else {
+    		    System.out.println("   Log file :                          none");
+    	}
+    	
+    	System.out.println("");
+    	
+    }
+    
     /**
      * initialize the CommandLineArguments based on list of arguments
      * @param args

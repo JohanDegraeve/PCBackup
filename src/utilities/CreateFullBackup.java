@@ -118,7 +118,7 @@ public class CreateFullBackup {
 		    File subfolder = new File(path.toString());
 
 		    if (subfolder.mkdirs()) {
-		        Logger.log("in createSubFolderIfNotExisting, Subfolder created successfully: " + subfolder.getAbsolutePath());
+		        Logger.log("in createSubFolderIfNotExisting, backup folder created successfully: " + subfolder.getAbsolutePath());
 		    } else {
 		    	Logger.log("in createSubFolderIfNotExisting, Subfolder already exists or creation failed: " + subfolder.getAbsolutePath());
 		    }
