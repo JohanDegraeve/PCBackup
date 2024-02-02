@@ -28,11 +28,17 @@ public class Backup {
 
 	public static void backup() {
 		
+		// not all commands are applicable
+		// but I did use this:
+		// --destination=E:\SharePointBackupDisk1 --source=E:\SharePointBackupDisk1 --excludedfilelist="C:\temp\excludedfiles.txt" --type=I
+		
         CommandLineArguments commandLineArguments = CommandLineArguments.getInstance();
         
-        String sourcesubfolder = "2023-12-06 18;24;41 (Full)";
+        String sourcesubfolder = "2023-12-11 08;39;31 (Incrementeel)";
         
-        String destinationsubfolder = "2023-12-11 08;39;31 (Incrementeel)";
+        String destinationsubfolderRenamed = "2023-12-13 09;30;04 (Incrementeel)";
+        
+        String destinationsubfolderOriginal = "2023-12-13 09;30;04 (Incremental)";
         
 		/**
 		 * where to find the source files
@@ -42,7 +48,7 @@ public class Backup {
         /**
          * main path for backup, this is the backup folder path without the specific folder (ie without '2023-12-06 18;24;41 (Full)' or anything like that)
          */
-        Path destinationFolderPath = Paths.get(commandLineArguments.source).resolve(destinationsubfolder);
+        Path destinationFolderPath = Paths.get(commandLineArguments.source).resolve(destinationsubfolderRenamed);
 
         /**
          * path to previous most recent backup, either Full or Incremental. 
@@ -71,7 +77,7 @@ public class Backup {
                 			continue;
                 		}
                 	}
-                	listOfFilesAndFoldersInDest.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, destinationsubfolder, commandLineArguments.excludedFiles));                	
+                	listOfFilesAndFoldersInDest.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, destinationsubfolderOriginal, commandLineArguments.excludedFiles));                	
                 }
                 
             }
@@ -84,7 +90,7 @@ public class Backup {
         }
         
         // now we should see what is in source but not in dest, add this and use backupfolder = previous one
-        FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSource, listOfFilesAndFoldersInDest, null, sourceFolderPath, new ArrayList<String>(), destinationsubfolder);
+        FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSource, listOfFilesAndFoldersInDest, null, sourceFolderPath, new ArrayList<String>(), destinationsubfolderRenamed);
         
         /**
     	 * needed for json encoding
