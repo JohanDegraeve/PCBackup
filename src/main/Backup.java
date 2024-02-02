@@ -59,68 +59,79 @@ public class Backup {
 
         if (commandLineArguments.fullBackup) {
         	
-        }
-        
-    	// first read the json file from previous backup, meaning the source
-        AFileOrAFolder listOfFilesAndFoldersInSource = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(sourceFolderPath.resolve("folderlist.json"));
-        
-        // now create a json by analysing the destination folder
-        AFolder listOfFilesAndFoldersInDest = new AFolder(sourceFolderPath.toString(), "");
-        
-        try {
+        	AFileOrAFolder thething = createJsonStructure(commandLineArguments, sourceFolderPath, sourcesubfolder);
         	
-            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(destinationFolderPath)) {
+        	WriteToFile.writeToFile(fromAFileOrAFolderToJsonString(thething), "c:\\temp" + File.separator + "folderlist.json");
+        	
+        } else {
+
+        	/**
+        	 * TO SIMPLIFY
+        	 */
+        	
+        	// first read the json file from previous backup, meaning the source
+            AFileOrAFolder listOfFilesAndFoldersInSource = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(sourceFolderPath.resolve("folderlist.json"));
+            
+            // now create a json by analysing the destination folder
+            AFolder listOfFilesAndFoldersInDest = new AFolder(sourceFolderPath.toString(), "");
+            
+            try {
             	
-                for (Path path : directoryStream) {
-                	if (!(Files.isDirectory(path))) {
-                		// check if the file is in the list of files to exclude, example .DS_Store
-                		if (commandLineArguments.excludedFiles.contains(path.getFileName().toString())) {
-                    		continue;
-                		}
-                		// check if the file is of format .849C9593-D756-4E56-8D6E-42412F2A707B seems a Microsoft hidden file
-                		if (OtherUtilities.fileNeedsToBeIgnored(path.getFileName().toString())) {
-                			continue;
-                		}
-                	}
-                	listOfFilesAndFoldersInDest.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, destinationsubfolder, commandLineArguments.excludedFiles));                	
+                try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(destinationFolderPath)) {
+                	
+                    for (Path path : directoryStream) {
+                    	if (!(Files.isDirectory(path))) {
+                    		// check if the file is in the list of files to exclude, example .DS_Store
+                    		if (commandLineArguments.excludedFiles.contains(path.getFileName().toString())) {
+                        		continue;
+                    		}
+                    		// check if the file is of format .849C9593-D756-4E56-8D6E-42412F2A707B seems a Microsoft hidden file
+                    		if (OtherUtilities.fileNeedsToBeIgnored(path.getFileName().toString())) {
+                    			continue;
+                    		}
+                    	}
+                    	listOfFilesAndFoldersInDest.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, destinationsubfolder, commandLineArguments.excludedFiles));                	
+                    }
+                    
                 }
-                
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                Logger.log("Exception in main, while creating list of folders");
+                Logger.log(e.toString());
+                System.exit(1);
+            }
+            
+            // now we should see what is in source but not in dest, add this and use backupfolder = previous one
+            FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSource, listOfFilesAndFoldersInDest, null, sourceFolderPath, new ArrayList<String>(), destinationsubfolder);
+            
+            /**
+        	 * needed for json encoding
+        	 */
+        	ObjectMapper objectMapper = new ObjectMapper();
+        	
+        	String destFolderToJson = "";
+        	
+            try {
+            	
+            	// json encoding of listOfFilesAndFoldersInPreviousBackupFolder which is now the new backup
+            	destFolderToJson = objectMapper.writeValueAsString(listOfFilesAndFoldersInDest);
+            	
+            } catch (IOException e) {
+            	e.printStackTrace();
+                Logger.log("Exception in main, while creating json for listOfFilesAndFoldersInPreviousBackupFolder");
+                Logger.log(e.toString());
+                System.exit(1);
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            Logger.log("Exception in main, while creating list of folders");
-            Logger.log(e.toString());
-            System.exit(1);
-        }
-        
-        // now we should see what is in source but not in dest, add this and use backupfolder = previous one
-        FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSource, listOfFilesAndFoldersInDest, null, sourceFolderPath, new ArrayList<String>(), destinationsubfolder);
-        
-        /**
-    	 * needed for json encoding
-    	 */
-    	ObjectMapper objectMapper = new ObjectMapper();
-    	
-    	String destFolderToJson = "";
-    	
-        try {
-        	
-        	// json encoding of listOfFilesAndFoldersInPreviousBackupFolder which is now the new backup
-        	destFolderToJson = objectMapper.writeValueAsString(listOfFilesAndFoldersInDest);
-        	
-        } catch (IOException e) {
-        	e.printStackTrace();
-            Logger.log("Exception in main, while creating json for listOfFilesAndFoldersInPreviousBackupFolder");
-            Logger.log(e.toString());
-            System.exit(1);
-        }
+    		WriteToFile.writeToFile(destFolderToJson, "c:\\temp" + File.separator + "folderlist.json");
 
-		WriteToFile.writeToFile(destFolderToJson, "c:\\temp" + File.separator + "folderlist.json");
+        }
+        
 
 	}
 	
-	private void createJsonFile(CommandLineArguments commandLineArguments, Path folderPath, String pathToBackupToUse) {
+	private static AFileOrAFolder createJsonStructure(CommandLineArguments commandLineArguments, Path folderPath, String pathToBackupToUse) {
 		
         // now create a json by analysing the folder
         AFolder listOfFilesAndFoldersInDest = new AFolder(folderPath.toString(), "");
@@ -151,7 +162,34 @@ public class Backup {
             Logger.log(e.toString());
             System.exit(1);
         }
+        
+        return listOfFilesAndFoldersInDest;
 
+	}
+	
+	private static String fromAFileOrAFolderToJsonString (AFileOrAFolder aFileOrAFolder) {
+		
+        /**
+    	 * needed for json encoding
+    	 */
+    	ObjectMapper objectMapper = new ObjectMapper();
+    	
+    	String destFolderToJson = "";
+    	
+        try {
+        	
+        	// json encoding of listOfFilesAndFoldersInPreviousBackupFolder which is now the new backup
+        	destFolderToJson = objectMapper.writeValueAsString(aFileOrAFolder);
+        	
+        } catch (IOException e) {
+        	e.printStackTrace();
+            Logger.log("Exception in main, while creating json for listOfFilesAndFoldersInPreviousBackupFolder");
+            Logger.log(e.toString());
+            System.exit(1);
+        }
+
+        return destFolderToJson;
+		
 	}
 	
 }
