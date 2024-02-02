@@ -5,7 +5,7 @@ import model.CommandLineArguments;
 public class BackupMainClass {
 
 // sample command to do backup
-// --destination=/Users/johandegraeve/Downloads/backup --source=/Users/johandegraeve/Downloads/temp/test --excludedfilelist="/Users/johandegraeve/OneDrive/Eclipse projects/PCBackup/excludedfiles.txt" --type=I
+// --destination=c:\temp\backuptest  --source="C:\Users\johan.degraeve.BWR-DC\Kenniscentrum WWZ\XDrive - test" --excludedfilelist="C:\Users\johan.degraeve.BWR-DC\eclipse-workspace\PCBackup\excludedfiles.txt" --type=I
 	
 	
 // sample command to do restore
