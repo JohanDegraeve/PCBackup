@@ -6,20 +6,14 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.AFileOrAFolder;
 import model.AFolder;
 import model.CommandLineArguments;
-import model.Constants;
-import utilities.CreateFullBackup;
-import utilities.CreateSubFolder;
 import utilities.FileAndFolderUtilities;
-import utilities.ListBackupsInFolder;
 import utilities.Logger;
 import utilities.OtherUtilities;
 import utilities.WriteToFile;
@@ -28,35 +22,46 @@ public class Backup {
 
 	public static void backup() {
 		
+		/**
+		 * modified version to allow reconstruction of folderlist.json<br>
+		 * Use type F if goal is to create a json file from a full backup<br>
+		 * Use type I if goal is to create a json file from an incremental backup
+		 */
+		
 		// not all commands are applicable
 		// but I did use this:
 		// --destination=E:\SharePointBackupDisk1 --source=E:\SharePointBackupDisk1 --excludedfilelist="C:\temp\excludedfiles.txt" --type=I
 		
         CommandLineArguments commandLineArguments = CommandLineArguments.getInstance();
         
-        String sourcesubfolder = "2023-12-11 08;39;31 (Incrementeel)";
+        /**
+         * create here the subfolder name, with either the full or incremental backup<br>
+         * In case a complete folderlist.json of a full backup is taken, then this folder does not contain a folderlist.json<br>
+         * If the goal is to create a folderlist.json for an incremental backup, then this folder already has a folderlist.json<br> 
+         */
+        String sourcesubfolder = "2024-02-02 11;35;29 (Full)";
         
-        String destinationsubfolderRenamed = "2023-12-13 09;30;04 (Incrementeel)";
-        
-        String destinationsubfolderOriginal = "2023-12-13 09;30;04 (Incremental)";
+        /**
+         * needed if goal is to create folderlist.json for an incremental backup<br>
+         * Renamed
+         */
+        String destinationsubfolder = "2023-12-13 09;30;04 (Incremental)";
         
 		/**
-		 * where to find the source files
+		 * source path + sourcesubfolder
 		 */
         Path sourceFolderPath = Paths.get(commandLineArguments.source).resolve(sourcesubfolder);
 
         /**
-         * main path for backup, this is the backup folder path without the specific folder (ie without '2023-12-06 18;24;41 (Full)' or anything like that)
+         * source path + destinationsubfolder
          */
-        Path destinationFolderPath = Paths.get(commandLineArguments.source).resolve(destinationsubfolderRenamed);
+        Path destinationFolderPath = Paths.get(commandLineArguments.source).resolve(destinationsubfolder);
 
-        /**
-         * path to previous most recent backup, either Full or Incremental. 
-         */
-    	Path mostRecentBackupPath = null;
-    	
-    	
-    	// first read the json file from previous backup, ie source
+        if (commandLineArguments.fullBackup) {
+        	
+        }
+        
+    	// first read the json file from previous backup, meaning the source
         AFileOrAFolder listOfFilesAndFoldersInSource = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(sourceFolderPath.resolve("folderlist.json"));
         
         // now create a json by analysing the destination folder
@@ -77,7 +82,7 @@ public class Backup {
                 			continue;
                 		}
                 	}
-                	listOfFilesAndFoldersInDest.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, destinationsubfolderOriginal, commandLineArguments.excludedFiles));                	
+                	listOfFilesAndFoldersInDest.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, destinationsubfolder, commandLineArguments.excludedFiles));                	
                 }
                 
             }
@@ -90,7 +95,7 @@ public class Backup {
         }
         
         // now we should see what is in source but not in dest, add this and use backupfolder = previous one
-        FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSource, listOfFilesAndFoldersInDest, null, sourceFolderPath, new ArrayList<String>(), destinationsubfolderRenamed);
+        FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSource, listOfFilesAndFoldersInDest, null, sourceFolderPath, new ArrayList<String>(), destinationsubfolder);
         
         /**
     	 * needed for json encoding
@@ -113,53 +118,39 @@ public class Backup {
 
 		WriteToFile.writeToFile(destFolderToJson, "c:\\temp" + File.separator + "folderlist.json");
 
+	}
+	
+	private void createJsonFile(CommandLineArguments commandLineArguments, Path folderPath, String pathToBackupToUse) {
 		
-        System.out.println("hello");
-        /*//if option is F, then create full backup
-        if (commandLineArguments.fullBackup) {
-            CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder);
-        } else {
-        	        	
-            // convert folderlist.json in mostrecent backup path to AFileOrAFolder
-            AFileOrAFolder listOfFilesAndFoldersInPreviousBackupFolder = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(mostRecentBackupPath.resolve("folderlist.json"));
-            
-            // we know for sure that both listOfFilesAndFoldersInSourceFolder and listOfFilesAndFoldersInPreviousBackupFolder are instance of AFolder
-            // let's check anyway
-            if (!(listOfFilesAndFoldersInSourceFolder instanceof AFolder)) {Logger.log("listOfFilesAndFoldersInSourceFolder is not an instance of AFolder");System.exit(1);} 
-            if (!(listOfFilesAndFoldersInPreviousBackupFolder instanceof AFolder)) {Logger.log("listOfFilesAndFoldersInPreviousBackupFolder is not an instance of AFolder");System.exit(1);}
-            // set the name of the first folder to "", because this may be the original main folder name which we don't need
-            listOfFilesAndFoldersInSourceFolder.setName("");
-            listOfFilesAndFoldersInPreviousBackupFolder.setName("");
-            FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSourceFolder, listOfFilesAndFoldersInPreviousBackupFolder, sourceFolderPath, destinationFolderPathSubFolder, new ArrayList<String>(), backupfoldername);
-            
-            /**
-        	 * needed for json encoding
-        	 */
-        	/*ObjectMapper objectMapper = new ObjectMapper();
+        // now create a json by analysing the folder
+        AFolder listOfFilesAndFoldersInDest = new AFolder(folderPath.toString(), "");
+        
+        try {
         	
-        	String destFolderToJson = "";
-        	
-            try {
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(folderPath)) {
             	
-            	// json encoding of listOfFilesAndFoldersInPreviousBackupFolder which is now the new backup
-            	destFolderToJson = objectMapper.writeValueAsString(listOfFilesAndFoldersInPreviousBackupFolder);
-            	
-            } catch (IOException e) {
-            	e.printStackTrace();
-                Logger.log("Exception in main, while creating json for listOfFilesAndFoldersInPreviousBackupFolder");
-                Logger.log(e.toString());
-                System.exit(1);
+                for (Path path : directoryStream) {
+                	if (!(Files.isDirectory(path))) {
+                		// check if the file is in the list of files to exclude, example .DS_Store
+                		if (commandLineArguments.excludedFiles.contains(path.getFileName().toString())) {
+                    		continue;
+                		}
+                		// check if the file is of format .849C9593-D756-4E56-8D6E-42412F2A707B seems a Microsoft hidden file
+                		if (OtherUtilities.fileNeedsToBeIgnored(path.getFileName().toString())) {
+                			continue;
+                		}
+                	}
+                	listOfFilesAndFoldersInDest.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, pathToBackupToUse, commandLineArguments.excludedFiles));                	
+                }
+                
             }
 
-            // now write the file folderlist.json to the backup folder
-    		// first write the json file to destination folder
-    		WriteToFile.writeToFile(destFolderToJson, destinationFolderPathSubFolder.toString() + File.separator + "folderlist.json");
-            
-            System.out.println("Backup finished, see " + destinationFolderPathSubFolder.toString());
-
-        }*/
-        
-        
+        } catch (IOException e) {
+            e.printStackTrace();
+            Logger.log("Exception in main, while creating list of folders");
+            Logger.log(e.toString());
+            System.exit(1);
+        }
 
 	}
 	
