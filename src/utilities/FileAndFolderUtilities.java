@@ -146,36 +146,6 @@ public class FileAndFolderUtilities {
 
         private static void compareAndUpdateFiles(AFile sourceFile, AFile destFile, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
             // Compare and update files based on last modified timestamp
-            if (sourceFile.getts() > destFile.getts()) {
-            	
-                // Update destFile with the new timestamp
-                destFile.setts(sourceFile.getts());
-                Logger.log("setting ts for " + destFile.getName() + " to " + destFile.getts() + " and copying to backup");
-                
-                // set also the backup foldername
-                destFile.setPathToBackup(backupFolderName);
-                
-                // create the folder in the destination if it doesn't exist yet
-                try {
-					Files.createDirectories(PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));
-				} catch (IOException e) {
-					e.printStackTrace();
-		            Logger.log("Exception in compareAndUpdateFiles(AFile,AFile) while creating the directory " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders).toString());
-		            Logger.log(e.toString());
-		            System.exit(1);
-				}
-                
-                try {
-                	// add sourcefile name to dest and source file, it's the same name
-					Files.copy(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, sourceFile.getName())), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFile.getName())), StandardCopyOption.COPY_ATTRIBUTES);
-				} catch (IOException e) {
-					e.printStackTrace();
-		            Logger.log("Exception in compareAndUpdateFiles(AFile,AFile) while copying a file from " + PathUtilities.concatenatePaths(sourceFolderPath, subfolders).toString() + " to " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));
-		            Logger.log(e.toString());
-		            System.exit(1);
-				}
-                
-            } 
         }
 
         private static void compareAndUpdateFolders(AFolder sourceFolder, AFolder destFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
@@ -190,45 +160,13 @@ public class FileAndFolderUtilities {
 
                 if (matchingDestItem == null) {
                 	
-                    // Item in source doesn't exist in dest, add it
-                    destContents.add(sourceItem);
-                	Logger.log("in compareAndUpdateFolders(AFileOrAFolder, AFileOrAFolder.., adding " + sourceItem.getName() + " to " + destFolder.getName());
-                	
-                	if (sourceItem instanceof AFile) {
-
-                        // create the folder in the destination if it doesn't exist yet
-                        try {
-        					Files.createDirectories(PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));
-        				} catch (IOException e) {
-        					e.printStackTrace();
-        		            Logger.log("Exception in compareAndUpdateFiles(AFileOrAFolder, AFileOrAFolder.. while creating the directory " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders).toString());
-        		            Logger.log(e.toString());
-        		            System.exit(1);
-        				}
-                        
-                        try {
-                        	// add sourcefile name to dest and source file, it's the same name
-        					Files.copy(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, sourceItem.getName())), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, sourceItem.getName())), StandardCopyOption.COPY_ATTRIBUTES);
-        				} catch (IOException e) {
-        					e.printStackTrace();
-        		            Logger.log("Exception in compareAndUpdateFiles(AFileOrAFolder, AFileOrAFolder.. while copying a file from " + PathUtilities.concatenatePaths(sourceFolderPath, subfolders).toString() + " to " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));
-        		            Logger.log(e.toString());
-        		            System.exit(1);
-        				}
-
-
-                	} else if (sourceItem instanceof AFolder) {// it has to be an instance of AFolder but let's check anyway
+                	// if pathtobackup does not match backupFolderName then we don't care, then it means this item is stored in another backup
+                	// this is true only if it's a file
+                	if (sourceItem.getPathToBackup().equalsIgnoreCase(backupFolderName) || sourceItem instanceof AFolder) {
                 		
-                		// we need to copy the complete contents of the folder from source to dest
-                		try {
-							OtherUtilities.copyFolder(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, sourceItem.getName())), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, sourceItem.getName())));
-						} catch (IOException e) {
-							e.printStackTrace();
-        		            Logger.log("Exception in compareAndUpdateFiles(AFileOrAFolder, AFileOrAFolder.. while copying a folder from " + PathUtilities.concatenatePaths(sourceFolderPath, subfolders).toString() + " to " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));
-        		            Logger.log(e.toString());
-        		            System.exit(1);
-						}
-                		
+                		Path pathNotFound = PathUtilities.concatenatePaths(destBackupFolderPath, subfolders).resolve(sourceItem.getName());
+                    	
+                        System.out.println("    Did not find " + pathNotFound.toString());
                 	}
                 	
                 	
@@ -238,10 +176,7 @@ public class FileAndFolderUtilities {
                 }
             }
 
-            // Process items in dest that don't exist in source
-            if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
-            	Logger.log("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), did remove one or more items from  " + destFolder.getName());
-            }
+            
         }
 
         private static boolean containsItem(AFileOrAFolder sourceFileOrFolder, List<AFileOrAFolder> fileOrFolderList) {

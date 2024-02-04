@@ -13,17 +13,10 @@ public class BackupMainClass {
 	
     public static void main(String[] args) {
         
-    	CommandLineArguments commandLineArguments = CommandLineArguments.getInstance(args);
+    	CommandLineArguments.getInstance(args);
 
-    	if (commandLineArguments.backup) {
-    		
-    		Backup.backup();
-    		
-    	} else {
-    		
-    		Restore.restore();
-    		
-    	}
+    	// to start comparing
+    	Backup.backup();
     		
     }
 

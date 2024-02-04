@@ -48,7 +48,7 @@ public class ListBackupsInFolder {
     	return returnValue;
     }
     
-    private static List<Path> getAllBackupFolders(Path backupFolder) throws IOException {
+    public static List<Path> getAllBackupFolders(Path backupFolder) throws IOException {
         List<Path> backupFolders = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(backupFolder, entry ->
                 Files.isDirectory(entry) && isValidBackupFolder(entry))) {
