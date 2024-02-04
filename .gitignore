@@ -31,3 +31,6 @@ replay_pid*
 /lib/
 
 .DS_Store
+
+# commit.txt is used to write a longer commit message. 
+commit.txt
