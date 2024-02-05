@@ -1,6 +1,8 @@
 package main;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -31,6 +33,15 @@ public class Backup {
 		
         CommandLineArguments commandLineArguments = CommandLineArguments.getInstance();
         
+        BufferedWriter writer = null;
+        
+        try {
+        	writer = new BufferedWriter(new FileWriter("c:\\temp\\missing.txt")) ;
+        	
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 		/**
 		 * where to find the source files
 		 */
@@ -47,16 +58,27 @@ public class Backup {
         
         for (Path backpfolder: allBackupFolders) {
         	
+        	/*if (backpfolder.getFileName().toString().contains("Full")) {
+        		continue;
+        	}*/
+        	
         	System.out.println("processing " + backpfolder.toString());
+        	try {
+				writer.write("processing " + backpfolder.toString()+ "\n");
+				writer.flush();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	
         	
         	String backupFolderName = backpfolder.getFileName().toString();
         	
         	AFileOrAFolder theActualFolders = createJsonStructure(commandLineArguments, backpfolder, backupFolderName);
 
-        	AFileOrAFolder thejsonfile = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(backpfolder.resolve("folderlist.json"));
-            
+        	AFileOrAFolder thejsonfile = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(backpfolder.resolve("folderlist.json"));            
 
-        	FileAndFolderUtilities.compareAndUpdate(thejsonfile, theActualFolders, sourceFolderPath, sourceFolderPath, new ArrayList<String>(), backupFolderName);
+        	FileAndFolderUtilities.compareAndUpdate(thejsonfile, theActualFolders, sourceFolderPath, sourceFolderPath, new ArrayList<String>(), backupFolderName, writer);
         	
         }
         

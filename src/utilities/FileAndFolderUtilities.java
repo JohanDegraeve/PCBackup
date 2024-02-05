@@ -1,5 +1,6 @@
 package utilities;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
@@ -86,7 +87,7 @@ public class FileAndFolderUtilities {
     	 * @param sourceFileOrFolder instance of AFileOrAFolder that represents the contents in sourceFolderPath
     	 * @param subfolders is an arraylist of strings, representing the subfolders. We need to pass them through as we go recursively through the function. It's needed in case a file copy needs to be made to make sure we put it in the right folder.
     	 */
-        public static void compareAndUpdate(AFileOrAFolder sourceFileOrFolder, AFileOrAFolder destFileOrFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
+        public static void compareAndUpdate(AFileOrAFolder sourceFileOrFolder, AFileOrAFolder destFileOrFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName, BufferedWriter writer) {
         	
             // Compare and update files and folders
             if (sourceFileOrFolder instanceof AFile  && destFileOrFolder instanceof AFile) {
@@ -94,7 +95,7 @@ public class FileAndFolderUtilities {
                 compareAndUpdateFiles((AFile) sourceFileOrFolder, (AFile) destFileOrFolder, sourceFolderPath, destBackupFolderPath, subfolders, backupFolderName);
             } else if (!(sourceFileOrFolder instanceof AFile) && !(destFileOrFolder instanceof AFile)) {
                 // Compare and update folders
-                compareAndUpdateFolders((AFolder) sourceFileOrFolder, (AFolder) destFileOrFolder, sourceFolderPath, destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFileOrFolder.getName()), backupFolderName);
+                compareAndUpdateFolders((AFolder) sourceFileOrFolder, (AFolder) destFileOrFolder, sourceFolderPath, destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFileOrFolder.getName()), backupFolderName, writer);
             } else {
             	Logger.log("in compareAndUpdate(AFileOrAFolder source, AFileOrAFolder dest), not both File and not both Folder");
             }
@@ -148,7 +149,7 @@ public class FileAndFolderUtilities {
             // Compare and update files based on last modified timestamp
         }
 
-        private static void compareAndUpdateFolders(AFolder sourceFolder, AFolder destFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
+        private static void compareAndUpdateFolders(AFolder sourceFolder, AFolder destFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName, BufferedWriter writer) {
             // Compare and update folders based on content
             List<AFileOrAFolder> sourceContents = sourceFolder.getFileOrFolderList();
             List<AFileOrAFolder> destContents = destFolder.getFileOrFolderList();
@@ -162,17 +163,29 @@ public class FileAndFolderUtilities {
                 	
                 	// if pathtobackup does not match backupFolderName then we don't care, then it means this item is stored in another backup
                 	// this is true only if it's a file
-                	if (sourceItem.getPathToBackup().equalsIgnoreCase(backupFolderName) || sourceItem instanceof AFolder) {
+                	if (sourceItem.getPathToBackup().equalsIgnoreCase(backupFolderName) && !(sourceItem instanceof AFolder)) {
+                		
+                		if (sourceItem.getName().equals("Minderjarigen")) {
+                			System.out.println("found Minderjarigen");
+                		}
                 		
                 		Path pathNotFound = PathUtilities.concatenatePaths(destBackupFolderPath, subfolders).resolve(sourceItem.getName());
                     	
                         System.out.println("    Did not find " + pathNotFound.toString());
+                        try {
+							writer.write("    Did not find  " + pathNotFound.toString() + "\n");
+							writer.flush();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+                    	
                 	}
                 	
                 	
                 } else {
                     // Recursively compare and update the matching items
-                    compareAndUpdate(sourceItem, matchingDestItem, sourceFolderPath, destBackupFolderPath, subfolders, backupFolderName);
+                    compareAndUpdate(sourceItem, matchingDestItem, sourceFolderPath, destBackupFolderPath, subfolders, backupFolderName, writer);
                 }
             }
 
