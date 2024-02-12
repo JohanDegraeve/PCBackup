@@ -30,4 +30,5 @@ replay_pid*
 /bin/
 /lib/
 
-.DS_Store
+.DS_Store	
+commit.txt
