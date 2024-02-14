@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.AFileOrAFolder;
 import model.AFolder;
+import model.CommandLineArguments;
 import model.AFile;
 
 /**
@@ -86,7 +87,7 @@ public class FileAndFolderUtilities {
     	 * @param sourceFileOrFolder instance of AFileOrAFolder that represents the contents in sourceFolderPath
     	 * @param subfolders is an arraylist of strings, representing the subfolders. We need to pass them through as we go recursively through the function. It's needed in case a file copy needs to be made to make sure we put it in the right folder.
     	 */
-        public static void compareAndUpdate(AFileOrAFolder sourceFileOrFolder, AFileOrAFolder destFileOrFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
+        public static void compareAndUpdate(AFileOrAFolder sourceFileOrFolder, AFileOrAFolder destFileOrFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName, Integer level, CommandLineArguments commandLineArguments) {
         	
             // Compare and update files and folders
             if (sourceFileOrFolder instanceof AFile  && destFileOrFolder instanceof AFile) {
@@ -94,7 +95,7 @@ public class FileAndFolderUtilities {
                 compareAndUpdateFiles((AFile) sourceFileOrFolder, (AFile) destFileOrFolder, sourceFolderPath, destBackupFolderPath, subfolders, backupFolderName);
             } else if (!(sourceFileOrFolder instanceof AFile) && !(destFileOrFolder instanceof AFile)) {
                 // Compare and update folders
-                compareAndUpdateFolders((AFolder) sourceFileOrFolder, (AFolder) destFileOrFolder, sourceFolderPath, destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFileOrFolder.getName()), backupFolderName);
+                compareAndUpdateFolders((AFolder) sourceFileOrFolder, (AFolder) destFileOrFolder, sourceFolderPath, destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFileOrFolder.getName()), backupFolderName, level, commandLineArguments);
             } else {
             	Logger.log("in compareAndUpdate(AFileOrAFolder source, AFileOrAFolder dest), not both File and not both Folder");
             }
@@ -178,19 +179,37 @@ public class FileAndFolderUtilities {
             } 
         }
 
-        private static void compareAndUpdateFolders(AFolder sourceFolder, AFolder destFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
+        private static void compareAndUpdateFolders(AFolder sourceFolder, AFolder destFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName, Integer level, CommandLineArguments commandLineArguments) {
             // Compare and update folders based on content
             List<AFileOrAFolder> sourceContents = sourceFolder.getFileOrFolderList();
             List<AFileOrAFolder> destContents = destFolder.getFileOrFolderList();
 
             // Process files and folders in source
             for (AFileOrAFolder sourceItem : sourceContents) {
+            	
+            	// for the foldername mapping, we need to compare to the mapped name, so if a mapping is found, then we store the original name
+            	String originalSourceItemName = sourceItem.getName();
+            	String newSourceItemName = originalSourceItemName;
+            	
+            	// If it's a folder, and if it's the first level, then we'll do foldernamemapping
+            	if (
+            			   (level == 1) 
+            			&& (sourceItem instanceof AFolder) 
+            			&& (commandLineArguments.folderNameMapping.containsKey((originalSourceItemName)))
+            			&& (commandLineArguments.folderNameMapping.get(originalSourceItemName) != null)
+            		) {
+            		newSourceItemName = commandLineArguments.folderNameMapping.get(originalSourceItemName);
+            		sourceItem.setName(newSourceItemName);
+            	}
+            	
                 // Find the corresponding item in dest
                 AFileOrAFolder matchingDestItem = findMatchingItem(sourceItem, destContents);
 
+                // set back the original source item name, we will replace again later on by calling the funcion doFolderNameMapping, somewhere else
+            	sourceItem.setName(originalSourceItemName);
+
                 if (matchingDestItem == null) {
                 	
-                    // Item in source doesn't exist in dest, add it
                     destContents.add(sourceItem);
                 	Logger.log("in compareAndUpdateFolders(AFileOrAFolder, AFileOrAFolder.., adding " + sourceItem.getName() + " to " + destFolder.getName());
                 	
@@ -208,7 +227,7 @@ public class FileAndFolderUtilities {
                         
                         try {
                         	// add sourcefile name to dest and source file, it's the same name
-        					Files.copy(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, sourceItem.getName())), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, sourceItem.getName())), StandardCopyOption.COPY_ATTRIBUTES);
+        					Files.copy(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)), StandardCopyOption.COPY_ATTRIBUTES);
         				} catch (IOException e) {
         					e.printStackTrace();
         		            Logger.log("Exception in compareAndUpdateFiles(AFileOrAFolder, AFileOrAFolder.. while copying a file from " + PathUtilities.concatenatePaths(sourceFolderPath, subfolders).toString() + " to " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));
@@ -221,7 +240,7 @@ public class FileAndFolderUtilities {
                 		
                 		// we need to copy the complete contents of the folder from source to dest
                 		try {
-							OtherUtilities.copyFolder(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, sourceItem.getName())), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, sourceItem.getName())));
+							OtherUtilities.copyFolder(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)));
 						} catch (IOException e) {
 							e.printStackTrace();
         		            Logger.log("Exception in compareAndUpdateFiles(AFileOrAFolder, AFileOrAFolder.. while copying a folder from " + PathUtilities.concatenatePaths(sourceFolderPath, subfolders).toString() + " to " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));
@@ -233,14 +252,22 @@ public class FileAndFolderUtilities {
                 	
                 	
                 } else {
+                	
                     // Recursively compare and update the matching items
-                    compareAndUpdate(sourceItem, matchingDestItem, sourceFolderPath, destBackupFolderPath, subfolders, backupFolderName);
+                    compareAndUpdate(sourceItem, matchingDestItem, sourceFolderPath, destBackupFolderPath, subfolders, backupFolderName, level + 1, commandLineArguments);
+                    
+                    // before leaving the function set matchingDestItem name to the originalSourceItemName
+                    // later on we will call doFolderNameMapping, which iterates through the destination folder list. It will see that there's a mapping to be applied and then also rename the backuped folder
+                    matchingDestItem.setName(originalSourceItemName);
                 }
             }
 
             // Process items in dest that don't exist in source
-            if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
-            	Logger.log("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), did remove one or more items from  " + destFolder.getName());
+            // but only for not level 1 folders, meaning once a backup is taken of a sharepoint library, it will not be removed anymore
+            if (level > 1) {
+                if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
+                	System.out.println("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), did remove one or more items from  " + destFolder.getName());
+                }
             }
         }
 

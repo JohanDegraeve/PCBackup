@@ -73,7 +73,20 @@ public class CommandLineArguments {
          * If the complete backup needs to be restored, then omit this argument<br>
          * If a specific subfolder needs to be restored, then specify that folder here
          */
-        subfoldertorestore
+        subfoldertorestore,
+        
+        /**
+         * Sometimes SharePoint sync gives different foldernames to the main folder. Example sometimes the Documents folder is named "XDrive Documents", but 
+         * on another PC it may be named "XDrive Documenten"<br>
+         * The app allows to do mapping of foldernames. This is only applicable to the initial folder, not the subfolders. It's a list of mappings. Example line:<br>
+         * &nbsp &nbsp &nbsp &nbsp    XDrive Documents=XDrive Documenten<br>
+         * When doing a backup:<br>
+         * &nbsp &nbsp &nbsp &nbsp    When a folder in the source is named "XDrive Documents", then the file folderlist.json will be named "XDrive Documenten" and also in the backup there will be a folder with name "XDrive Documenten"<br>
+         * &nbsp &nbsp &nbsp &nbsp    So when we reuse a hard disk with backups taken on another PC, and the folder on that disk is named "XDrive Documenten", while on the new PC 
+         * where we do the backup, it's named "XDrive Documents", then we need to add the line 'XDrive Documents=XDrive Documenten' in the file that is specified here.<br>
+         * &nbsp &nbsp &nbsp &nbsp    Then if we do a backup on that new PC, the app sees the folder XDrive Documents, then the file folderlist.json will contain XDrive Documenten. 
+         */
+        foldernamemapping
         
         
         // Add more argument names as needed
@@ -124,6 +137,11 @@ public class CommandLineArguments {
      * Specifies the subfolder within the source to restore 
      */
     public String subfolderToRestore = "";
+    
+    /**
+     * used to store foldername mappings folderNameMapping
+     */
+    public HashMap<String, String> folderNameMapping = new HashMap<>();
     
 	/**
 	 * valid argument names, build based on the Enum ArgumentName
@@ -248,6 +266,11 @@ public class CommandLineArguments {
     	
     	subfolderToRestore = getArgumentValue(ArgumentName.subfoldertorestore);
     	if (subfolderToRestore == null) {subfolderToRestore = "";}
+    	
+    	String folderNameMappingPath = getArgumentValue(ArgumentName.foldernamemapping);
+    	if (folderNameMapping != null) {
+    		folderNameMapping = readFolderNameMappings(folderNameMappingPath);
+    	}
     	
     	printeArgumentSummary();
     	
@@ -434,11 +457,49 @@ public class CommandLineArguments {
             case "subfoldertorestore":
             	return true;
             	
+            case "foldernamemapping":
+            	return true;
+            	
             default:
                 // Unknown argument name
                 System.out.println("Unknown argument name: " + argName);
                 return false;
         }
+    }
+    
+    private static HashMap<String, String> readFolderNameMappings(String folderNameMappingPath) {
+    	
+    	HashMap<String, String> replacementMap = new HashMap<>();
+
+    	if (folderNameMappingPath == null) {return replacementMap;}
+    	
+    	// Read the file line by line and process each line
+        try (BufferedReader br = new BufferedReader(new FileReader(folderNameMappingPath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                // Split the line by "="
+                String[] parts = line.split("=");
+
+                // Ensure there are two parts (key and value)
+                if (parts.length == 2) {
+                    String key = parts[0].trim();
+                    String value = parts[1].trim();
+
+                    // Store key-value pair in the HashMap
+                    replacementMap.put(key, value);
+                } else {
+                    // Handle invalid lines if necessary
+                    System.out.println("Invalid line: " + line);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Failed to read  folderNameMapping "  + folderNameMappingPath);
+            giveMinimumArgumentsInfo();System.exit(1);
+        }
+        
+        return replacementMap;
+        
     }
     
     /**
@@ -459,6 +520,16 @@ public class CommandLineArguments {
     	System.out.println("  --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.");
     	System.out.println("  --restoredate: mandatory if type arguments = R. Date and time for which restore should occur. Format " + Constants.restoreDateFormat);
     	System.out.println("  --subfoldertorestore: The specific folder within source that needs to be restored, If the complete backup needs to be restored, then omit this argument, If a specific subfolder needs to be restored, then specify that folder here.");
+    	System.out.println("  --foldernamemapping:");
+    	System.out.print(  "          Sometimes SharePoint sync gives different foldernames to the main folder. Example sometimes the Documents folder is named \"XDrive Documents\", but");
+    	System.out.println(" on another PC it may be named \"XDrive Documenten\"");
+    	System.out.println("          The app allows to do mapping of foldernames. This is only applicable to the initial folder, not the subfolders. It's a list of mappings. Example line:");
+    	System.out.println("              XDrive Documents=XDrive Documenten");
+    	System.out.println("              When doing a backup:");
+    	System.out.println("              When a folder in the source is named \"XDrive Documents\", then the file folderlist.json will be named \"XDrive Documenten\" and also in the backup there will be a folder with name \"XDrive Documenten\"");
+    	System.out.print(  "              So when we reuse a hard disk with backups taken on another PC, and the folder on that disk is named \"XDrive Documenten\", while on the new PC, ");
+    	System.out.println("where we do the backup, it's named \"XDrive Documents\", then we need to add the line 'XDrive Documents=XDrive Documenten' in the file that is specified here.");
+    	System.out.println("              Then if we do a backup on that new PC, the app sees the folder XDrive Documents, then the file folderlist.json will contain XDrive Documenten.");
     }
     
 }

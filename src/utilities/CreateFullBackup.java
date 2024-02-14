@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import model.AFile;
 import model.AFileOrAFolder;
 import model.AFolder;
+import model.CommandLineArguments;
 
 public class CreateFullBackup {
 
@@ -26,7 +27,7 @@ public class CreateFullBackup {
 	 * @param destinationFolderPath : must exist
 	 */
 
-	public static void createFullBackup(AFolder listOfFilesAndFoldersInSourceFolder, Path sourceFolderPath, Path destinationFolderPath) {
+	public static void createFullBackup(AFolder listOfFilesAndFoldersInSourceFolder, Path sourceFolderPath, Path destinationFolderPath, CommandLineArguments commandLineArguments) {
 		
 		// check if destination path already exists, otherwise stop, coding error
 		if (!(Files.exists(destinationFolderPath))) {
@@ -34,27 +35,24 @@ public class CreateFullBackup {
 			System.exit(1);
 		}
 		
-		String sourceFolderToJson = "";
-		
-    	/**
-    	 * needed for json encoding
-    	 */
-    	ObjectMapper objectMapper = new ObjectMapper();
-    	
-        try {
-        	
-        	sourceFolderToJson = objectMapper.writeValueAsString(listOfFilesAndFoldersInSourceFolder);
-        	
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-		// first write the json file to destination folder
-		WriteToFile.writeToFile(sourceFolderToJson, destinationFolderPath.toString() + File.separator + "folderlist.json");
-		
 		// copy files that are in aFileOrAFolderSourceFolder
 		copyFilesAndFoldersFromSourceToDest(listOfFilesAndFoldersInSourceFolder.getFileOrFolderList(), sourceFolderPath, destinationFolderPath, true);
-				
+		
+		// do the foldername mapping
+		OtherUtilities.doFolderNameMapping(listOfFilesAndFoldersInSourceFolder, commandLineArguments, destinationFolderPath);
+
+		// store folderlist.json on disk
+		try {
+    		// write the json file to destination folder
+    		WriteToFile.writeToFile((new ObjectMapper()).writeValueAsString(listOfFilesAndFoldersInSourceFolder), destinationFolderPath.toString() + File.separator + "folderlist.json");
+        	
+        } catch (IOException e) {
+        	Logger.log("Failed to write json file folderlist.json to  " + destinationFolderPath.toString());
+			System.exit(1);
+        }
+
+		System.out.println("Backup finished, see " + destinationFolderPath.toString());
+
 	}
 	
 	private static void copyFilesAndFoldersFromSourceToDest(List<AFileOrAFolder> listOfFilesAndFoldersInSourceFolder, Path sourceFolderPath, Path destinationFolderPath, boolean createEmptyFolders) {

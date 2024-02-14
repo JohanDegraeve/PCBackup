@@ -95,6 +95,8 @@ public class Backup {
             	
                 for (Path path : directoryStream) {
                 	if (!(Files.isDirectory(path))) {
+                		// actually here it should always be a directory, if it's not then it should be a file to exclude
+                		// because we always start with a directory
                 		// check if the file is in the list of files to exclude, example .DS_Store
                 		if (commandLineArguments.excludedFiles.contains(path.getFileName().toString())) {
                     		continue;
@@ -104,6 +106,7 @@ public class Backup {
                 			continue;
                 		}
                 	}
+                	
                 	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername, commandLineArguments.excludedFiles));                	
                 }
                 
@@ -118,10 +121,10 @@ public class Backup {
         
         //if option is F, then create full backup
         if (commandLineArguments.fullBackup) {
-            CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder);
+            CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder, commandLineArguments);
         } else {
         	        	
-            // convert folderlist.json in mostrecent backup path to AFileOrAFolder
+            // convert folderlist.json in most recent backup path to AFileOrAFolder
             AFileOrAFolder listOfFilesAndFoldersInPreviousBackupFolder = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(mostRecentBackupPath.resolve("folderlist.json"));
             
             // we know for sure that both listOfFilesAndFoldersInSourceFolder and listOfFilesAndFoldersInPreviousBackupFolder are instance of AFolder
@@ -131,32 +134,22 @@ public class Backup {
             // set the name of the first folder to "", because this may be the original main folder name which we don't need
             listOfFilesAndFoldersInSourceFolder.setName("");
             listOfFilesAndFoldersInPreviousBackupFolder.setName("");
-            FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSourceFolder, listOfFilesAndFoldersInPreviousBackupFolder, sourceFolderPath, destinationFolderPathSubFolder, new ArrayList<String>(), backupfoldername);
+            FileAndFolderUtilities.compareAndUpdate(listOfFilesAndFoldersInSourceFolder, listOfFilesAndFoldersInPreviousBackupFolder, sourceFolderPath, destinationFolderPathSubFolder, new ArrayList<String>(), backupfoldername, 1, commandLineArguments);
             
-            /**
-        	 * needed for json encoding
-        	 */
-        	ObjectMapper objectMapper = new ObjectMapper();
-        	
-        	String destFolderToJson = "";
-        	
-            try {
-            	
-            	// json encoding of listOfFilesAndFoldersInPreviousBackupFolder which is now the new backup
-            	destFolderToJson = objectMapper.writeValueAsString(listOfFilesAndFoldersInPreviousBackupFolder);
+    		// do the foldername mapping
+    		OtherUtilities.doFolderNameMapping((AFolder)listOfFilesAndFoldersInPreviousBackupFolder, commandLineArguments, destinationFolderPath.resolve(backupfoldername));
+            
+    		// store folderlist.json on disk
+    		try {
+        		// write the json file to the destination folder
+        		WriteToFile.writeToFile((new ObjectMapper()).writeValueAsString(listOfFilesAndFoldersInPreviousBackupFolder), destinationFolderPathSubFolder.toString() + File.separator + "folderlist.json");
             	
             } catch (IOException e) {
-            	e.printStackTrace();
-                Logger.log("Exception in main, while creating json for listOfFilesAndFoldersInPreviousBackupFolder");
-                Logger.log(e.toString());
-                System.exit(1);
+            	Logger.log("Failed to write json file folderlist.json to  " + destinationFolderPath.toString());
+    			System.exit(1);
             }
 
-            // now write the file folderlist.json to the backup folder
-    		// first write the json file to destination folder
-    		WriteToFile.writeToFile(destFolderToJson, destinationFolderPathSubFolder.toString() + File.separator + "folderlist.json");
-            
-            System.out.println("Backup finished, see " + destinationFolderPathSubFolder.toString());
+    		System.out.println("Backup finished, see " + destinationFolderPathSubFolder.toString());
 
         }
         
