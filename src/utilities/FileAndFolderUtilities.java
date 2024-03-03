@@ -27,9 +27,10 @@ public class FileAndFolderUtilities {
      * @param backupFolderName just a foldername of the full or incremental backup where to find the file, example '2024-01-12 16;46;55 (Full)' This is actually not used just stored in an instance of AFile (not if it's a folder) 
      * @return an instance of either a folder or a file
      * @param excludefilelist array of strings that should be ignored as filename
+     * @param excludedpathlist array of strings that should be ignored as foldername
      * @throws IOException
      */
-    public static AFileOrAFolder createAFileOrAFolder(Path folderOrStringPath, String backupFolderName, List<String> excludefilelist) throws IOException {
+    public static AFileOrAFolder createAFileOrAFolder(Path folderOrStringPath, String backupFolderName, List<String> excludefilelist, List<String> excludedpathlist) throws IOException {
 
     	String fileOrFolderNameWithoutFullPath = folderOrStringPath.getFileName().toString();
 
@@ -37,9 +38,12 @@ public class FileAndFolderUtilities {
     		
     		AFolder returnValue = new AFolder(fileOrFolderNameWithoutFullPath, backupFolderName);
 
+    		/**
+    		 * FOLLOWING CODE REPEATS IN BACKUP.JAVA, If you're changing anything here, check if the same change is necessary in BACKUP.JAVA
+    		 */
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(folderOrStringPath)) {
             	
-                for (Path path : directoryStream) {
+            	directoryLoop: for (Path path : directoryStream) {
                 	   
                 	//  if it's a file, check if it's in the excludefilelist
                 	if (!(Files.isDirectory(path))) {
@@ -54,9 +58,22 @@ public class FileAndFolderUtilities {
                 			continue;
                 		}
                 		
+                	} else {
+                		// check if the directory contains any of the paths in excludedPaths
+                		// it's a 'contains' check, example if directory = c:\temp\backuptest\submap1\submap2 
+                		//    and if in the list excludedPaths there is a string submap1\submap2 then this is considered as a match
+                		//    in that case, the directory will not be backed up
+                		for (String excludedPath : excludedpathlist) {
+                			
+                			if (path.toString().toUpperCase().trim().indexOf(excludedPath.toUpperCase().trim()) >= 0) {
+                				Logger.log("Excluding folder '" + excludedPath + "' because " + excludedPath + " is in the file excludedpathlist");
+                				continue directoryLoop;
+                			}
+                		}
+                		
                 	}
                 	
-                	returnValue.addFileOrFolder(createAFileOrAFolder(path, backupFolderName, excludefilelist));
+                	returnValue.addFileOrFolder(createAFileOrAFolder(path, backupFolderName, excludefilelist, excludedpathlist));
                 		
                 }
                 

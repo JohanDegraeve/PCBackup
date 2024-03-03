@@ -86,7 +86,12 @@ public class CommandLineArguments {
          * where we do the backup, it's named "XDrive Documents", then we need to add the line 'XDrive Documents=XDrive Documenten' in the file that is specified here.<br>
          * &nbsp &nbsp &nbsp &nbsp    Then if we do a backup on that new PC, the app sees the folder XDrive Documents, then the file folderlist.json will contain XDrive Documenten. 
          */
-        foldernamemapping
+        foldernamemapping,
+        
+        /**
+         * paths to exclude, full paths that need to be exclude, starting from the main source folder, ie not start for instance with c:\\..
+         */
+        excludedpathlist
         
         
         // Add more argument names as needed
@@ -122,9 +127,15 @@ public class CommandLineArguments {
     public String logfilefolder;
     
     /**
-     * filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups<br>
+     * filenames that should be ignored, ie not added to the folderlist.json and not copied in backups<br>
      */
     public List<String> excludedFiles = new ArrayList<>();
+    
+    /**
+     * paths that should be ignored, ie not added to the folderlist.json and not copied in backups<br>
+     * These are full paths, starting from the main folder
+     */
+    public List<String> excludedPaths = new ArrayList<>();
     
     /**
      * only for restore, Date for which restore needs to be done
@@ -204,14 +215,14 @@ public class CommandLineArguments {
     	String excludedfilelist = getArgumentValue(ArgumentName.excludedfilelist);
     	if (excludedfilelist != null) {
     		Path folderPath = Paths.get(excludedfilelist);
-    		if (Files.isDirectory(folderPath)) {
-    			System.out.println("You specified file " + excludedfilelist + " as excludedfilelist but it does not exist. Create it is a directory, not a file'excludedfilelist'");
-    			giveMinimumArgumentsInfo();System.exit(1);
-    		}
         	if (!(Files.exists(folderPath))) {
         		System.out.println("You specified file " + excludedfilelist + " as excludedfilelist but it does not exist. Create it first or check the argument 'excludedfilelist'");
         		giveMinimumArgumentsInfo();System.exit(1);
         	}
+    		if (Files.isDirectory(folderPath)) {
+    			System.out.println("You specified file " + excludedfilelist + " as excludedfilelist but it is a directory, not a file");
+    			giveMinimumArgumentsInfo();System.exit(1);
+    		}
         	try (BufferedReader reader = new BufferedReader(new FileReader(excludedfilelist))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -219,7 +230,30 @@ public class CommandLineArguments {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                System.out.println("logfilefolder does not exist");
+                System.out.println("IOException while opening file " + excludedfilelist);
+				giveMinimumArgumentsInfo();System.exit(1);
+            }
+    	}
+    	
+    	String excludedpathlist = getArgumentValue(ArgumentName.excludedpathlist);
+    	if (excludedpathlist != null) {
+    		Path folderPath = Paths.get(excludedpathlist);
+        	if (!(Files.exists(folderPath))) {
+        		System.out.println("You specified file " + excludedpathlist + " as excludedpathlist but it does not exist. Create it first or check the argument 'excludedpathlist'");
+        		giveMinimumArgumentsInfo();System.exit(1);
+        	}
+    		if (Files.isDirectory(folderPath)) {
+    			System.out.println("You specified file " + excludedpathlist + " as excludedpathlist but it is a directory, not a file");
+    			giveMinimumArgumentsInfo();System.exit(1);
+    		}
+        	try (BufferedReader reader = new BufferedReader(new FileReader(excludedpathlist))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    excludedPaths.add(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("IOException while opening file " + excludedpathlist);
 				giveMinimumArgumentsInfo();System.exit(1);
             }
     	}
@@ -449,7 +483,6 @@ public class CommandLineArguments {
             	return true;
             case "excludedfilelist":
             	return true;
-            // Add more cases for other argument names as needed
 
             case "restoredate":
             	return true;
@@ -458,6 +491,9 @@ public class CommandLineArguments {
             	return true;
             	
             case "foldernamemapping":
+            	return true;
+            	
+            case "excludedpathlist":
             	return true;
             	
             default:
@@ -518,6 +554,7 @@ public class CommandLineArguments {
     	System.out.println("Optional arguments:");
     	System.out.println("  --logfilefolder: location of the logfile, just the folder name, it must exist.");
     	System.out.println("  --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.");
+    	System.out.println("  --excludedpathlist: full paths that need to be exclude, starting from the main source folder, ie not start for instance with c:\\..");
     	System.out.println("  --restoredate: mandatory if type arguments = R. Date and time for which restore should occur. Format " + Constants.restoreDateFormat);
     	System.out.println("  --subfoldertorestore: The specific folder within source that needs to be restored, If the complete backup needs to be restored, then omit this argument, If a specific subfolder needs to be restored, then specify that folder here.");
     	System.out.println("  --foldernamemapping:");

@@ -91,13 +91,16 @@ public class Backup {
         
         try {
         	
+    		/**
+    		 * FOLLOWING CODE REPEATS IN FILEANDFOLDERUTILITIES.JAVA, function createAFileOrAFolder, If you're changing anything here, check if the same change is necessary in BACKUP.JAVA
+    		 */
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sourceFolderPath)) {
             	
-                for (Path path : directoryStream) {
+                directoryLoop: for (Path path : directoryStream) {
                 	if (!(Files.isDirectory(path))) {
                 		// actually here it should always be a directory, if it's not then it should be a file to exclude
                 		// because we always start with a directory
-                		// check if the file is in the list of files to exclude, example .DS_Store
+                		// anyway let's check if the file is in the list of files to exclude, example .DS_Store
                 		if (commandLineArguments.excludedFiles.contains(path.getFileName().toString())) {
                     		continue;
                 		}
@@ -105,9 +108,21 @@ public class Backup {
                 		if (OtherUtilities.fileNeedsToBeIgnored(path.getFileName().toString())) {
                 			continue;
                 		}
+                	} else {
+                		// check if the directory name is in the list excludedPaths
+                		// it's equals check, example if directory = c:\temp\backuptest\submap1
+                		//    and if in the list excludedPaths there is a string c:\temp\backuptest\submap1 then this is considered as a match
+                		//    in that case, the directory will not be backed up
+                		for (String excludedPath : commandLineArguments.excludedPaths) {
+                			if (path.getFileName().toString().toUpperCase().trim().equals(excludedPath.toUpperCase().trim())) {
+                				Logger.log("Excluding folder '" + excludedPath + "' because " + excludedPath + " is in the file excludedpathlist");
+                				continue directoryLoop;
+                			}
+                		}
+                		
                 	}
                 	
-                	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername, commandLineArguments.excludedFiles));                	
+                	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername, commandLineArguments.excludedFiles, commandLineArguments.excludedPaths));                	
                 }
                 
             }
