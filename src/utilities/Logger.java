@@ -44,6 +44,7 @@ public class Logger {
 		
 		if (CommandLineArguments.getInstance().logfilefolder != null) {
 			// TODO : write to logfile
+			System.out.println(texttoLog);
 		}
 		
 		

@@ -97,6 +97,7 @@ public class Backup {
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sourceFolderPath)) {
             	
                 directoryLoop: for (Path path : directoryStream) {
+                	Logger.log("Reading files in " + path.getFileName().toString());
                 	if (!(Files.isDirectory(path))) {
                 		// actually here it should always be a directory, if it's not then it should be a file to exclude
                 		// because we always start with a directory
@@ -136,9 +137,10 @@ public class Backup {
         
         //if option is F, then create full backup
         if (commandLineArguments.fullBackup) {
+        	Logger.log("Starting full backup");
             CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder, commandLineArguments);
         } else {
-        	        	
+        	Logger.log("Starting incremental backup");       	
             // convert folderlist.json in most recent backup path to AFileOrAFolder
             AFileOrAFolder listOfFilesAndFoldersInPreviousBackupFolder = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(mostRecentBackupPath.resolve("folderlist.json"));
             
