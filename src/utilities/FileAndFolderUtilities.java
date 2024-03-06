@@ -168,7 +168,7 @@ public class FileAndFolderUtilities {
             	
                 // Update destFile with the new timestamp
                 destFile.setts(sourceFile.getts());
-                Logger.log("setting ts for " + destFile.getName() + " to " + destFile.getts() + " and copying to backup");
+                Logger.log("in compareAndUpdateFiles, setting ts for " + destFile.getName() + " to " + destFile.getts() + " and copying " + PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, sourceFile.getName())).toString() + " to backup");
                 
                 // set also the backup foldername
                 destFile.setPathToBackup(backupFolderName);
@@ -228,7 +228,7 @@ public class FileAndFolderUtilities {
                 if (matchingDestItem == null) {
                 	
                     destContents.add(sourceItem);
-                	Logger.log("in compareAndUpdateFolders(AFileOrAFolder, AFileOrAFolder.., adding " + sourceItem.getName() + " to " + destFolder.getName());
+                	Logger.log("in compareAndUpdateFolders, adding " + PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)).toString() + " to " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders).toString());
                 	
                 	if (sourceItem instanceof AFile) {
 
@@ -283,7 +283,7 @@ public class FileAndFolderUtilities {
             // but only for not level 1 folders, meaning once a backup is taken of a sharepoint library, it will not be removed anymore
             if (level > 1) {
                 if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
-                	System.out.println("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), did remove one or more items from  " + destFolder.getName());
+                	Logger.log("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), did remove one or more items from  " + destFolder.getName());
                 }
             }
         }
