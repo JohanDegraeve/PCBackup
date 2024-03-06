@@ -4,3 +4,4 @@ _rf.pbl
 _rrd.pbl
 _rrf.pbl
 folderlist.json
+desktop.ini
