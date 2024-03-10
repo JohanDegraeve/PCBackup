@@ -35,6 +35,18 @@ public class OtherUtilities {
 		
 	}
 	
+	public static String concatenateStrings(ArrayList<String> source) {
+		String returnValue = "";
+		for (String sourceItem : source) {
+			String seperatorToAdd = "";
+			if (returnValue.length() != 0) {
+				seperatorToAdd = "\\";
+			}
+			returnValue = returnValue +seperatorToAdd + sourceItem;
+		}
+		return returnValue;
+	}
+	
 	/**
 	 * example files of format .849C9593-D756-4E56-8D6E-42412F2A707B need to be ignored
 	 * @param fileName

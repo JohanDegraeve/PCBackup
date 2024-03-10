@@ -18,9 +18,7 @@ public class CreateSubFolder {
 	    // Create the subfolder
 	    File subfolder = new File(parentFolder, subfolderName);
 
-	    if (subfolder.mkdir()) {
-	        Logger.log("Subfolder created successfully: " + subfolder.getAbsolutePath());
-	    } else {
+	    if (!subfolder.mkdir()) {
 	    	Logger.log("Subfolder already exists or creation failed: " + subfolder.getAbsolutePath());
 	    }
 	    

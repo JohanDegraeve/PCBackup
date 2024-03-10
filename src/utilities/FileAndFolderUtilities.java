@@ -66,7 +66,7 @@ public class FileAndFolderUtilities {
                 		for (String excludedPath : excludedpathlist) {
                 			
                 			if (path.toString().toUpperCase().trim().indexOf(excludedPath.toUpperCase().trim()) >= 0) {
-                				Logger.log("Excluding folder '" + excludedPath + "' because " + excludedPath + " is in the file excludedpathlist");
+                				Logger.log("      Excluding folder '" + excludedPath + "' because " + excludedPath + " is in the file excludedpathlist");
                 				continue directoryLoop;
                 			}
                 		}
@@ -168,7 +168,7 @@ public class FileAndFolderUtilities {
             	
                 // Update destFile with the new timestamp
                 destFile.setts(sourceFile.getts());
-                Logger.log("in compareAndUpdateFiles, setting ts for " + destFile.getName() + " to " + destFile.getts() + " and copying " + PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, sourceFile.getName())).toString() + " to backup");
+                Logger.log("   Copying updated file " + OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, sourceFile.getName())));
                 
                 // set also the backup foldername
                 destFile.setPathToBackup(backupFolderName);
@@ -228,7 +228,7 @@ public class FileAndFolderUtilities {
                 if (matchingDestItem == null) {
                 	
                     destContents.add(sourceItem);
-                	Logger.log("in compareAndUpdateFolders, adding " + PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)).toString() + " to " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders).toString());
+                	Logger.log("   Adding new item : " + OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, originalSourceItemName)));
                 	
                 	if (sourceItem instanceof AFile) {
 
@@ -276,6 +276,7 @@ public class FileAndFolderUtilities {
                     // before leaving the function set matchingDestItem name to the originalSourceItemName
                     // later on we will call doFolderNameMapping, which iterates through the destination folder list. It will see that there's a mapping to be applied and then also rename the backuped folder
                     matchingDestItem.setName(originalSourceItemName);
+                    
                 }
             }
 
@@ -283,7 +284,8 @@ public class FileAndFolderUtilities {
             // but only for not level 1 folders, meaning once a backup is taken of a sharepoint library, it will not be removed anymore
             if (level > 1) {
                 if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
-                	Logger.log("in compareAndUpdateFolders(AFileOrAFolder source, AFileOrAFolder dest), did remove one or more items from  " + destFolder.getName());
+                	Logger.log("   Some files and/or folders in " + OtherUtilities.concatenateStrings(subfolders) + " that were still in previous backup are not found anymore in the source");
+                	Logger.log("      Those files and/or folders will be removed from the json structure");
                 }
             }
         }

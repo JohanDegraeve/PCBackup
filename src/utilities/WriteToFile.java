@@ -15,7 +15,6 @@ public class WriteToFile {
         	
             writer.write(textToWrite);
             writer.flush();
-            Logger.log("Folder structure written to file " + path);
         } catch (IOException e) {
             e.printStackTrace();
         }

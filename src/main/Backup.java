@@ -56,8 +56,8 @@ public class Backup {
     	if (mostRecentBackupPath == null && !commandLineArguments.fullBackup) {
     		Logger.log("You're asking an incremental backup but there's no previous backup. Start with a full backup or check the destination folder."); 
     		System.exit(1);
-    	} else if (mostRecentBackupPath != null) {
-    		Logger.log("mostRecentBackupPath = " + mostRecentBackupPath.toString());
+    	} else if (mostRecentBackupPath != null && !commandLineArguments.fullBackup) {
+    		Logger.log("Latest backup = " + mostRecentBackupPath.toString() + ". Only the new or modified files and folders since this latest backup will be copied.");
     	}
 
 
@@ -80,6 +80,9 @@ public class Backup {
          * where to write the backup, this includes the backupfoldername, like '2023-12-06 18;24;41 (Full)' or '2023-12-28 17;07;13 (Incremental)'
          */
         Path destinationFolderPathSubFolder = CreateSubFolder.createSubFolder(commandLineArguments.destination, backupfoldername);
+        
+        Logger.log("New backup folder created: " + backupfoldername);
+        Logger.log("Reading all files and folders in the source and build the folder structure");// in other words create an instance of AFolder
 
     	// first we make a list of files and folder in the sourceFolderPath,
         // for each file or folder we create an instance of AFileOrAFolder
@@ -97,7 +100,7 @@ public class Backup {
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(sourceFolderPath)) {
             	
                 directoryLoop: for (Path path : directoryStream) {
-                	Logger.log("Reading files in " + path.getFileName().toString());
+                	
                 	if (!(Files.isDirectory(path))) {
                 		// actually here it should always be a directory, if it's not then it should be a file to exclude
                 		// because we always start with a directory
@@ -116,14 +119,16 @@ public class Backup {
                 		//    in that case, the directory will not be backed up
                 		for (String excludedPath : commandLineArguments.excludedPaths) {
                 			if (path.getFileName().toString().toUpperCase().trim().equals(excludedPath.toUpperCase().trim())) {
-                				Logger.log("Excluding folder '" + excludedPath + "' because " + excludedPath + " is in the file excludedpathlist");
+                				Logger.log("      Excluding folder '" + excludedPath + "' because " + excludedPath + " is in the file excludedpathlist");
                 				continue directoryLoop;
                 			}
                 		}
                 		
                 	}
                 	
-                	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername, commandLineArguments.excludedFiles, commandLineArguments.excludedPaths));                	
+                	Logger.log("   Reading files in folder \"" + path.getFileName().toString() + "\"");
+                	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername, commandLineArguments.excludedFiles, commandLineArguments.excludedPaths));
+                	
                 }
                 
             }
@@ -139,10 +144,15 @@ public class Backup {
         if (commandLineArguments.fullBackup) {
         	Logger.log("Starting full backup");
             CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder, commandLineArguments);
+            System.out.println("Backup finished");
         } else {
-        	Logger.log("Starting incremental backup");       	
+        	
+        	Logger.log("Parsing the json file from previous backup " + mostRecentBackupPath.resolve("folderlist.json").toString()); 
+        	Logger.log("   "); 
             // convert folderlist.json in most recent backup path to AFileOrAFolder
             AFileOrAFolder listOfFilesAndFoldersInPreviousBackupFolder = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(mostRecentBackupPath.resolve("folderlist.json"));
+            
+            Logger.log("Starting incremental backup");
             
             // we know for sure that both listOfFilesAndFoldersInSourceFolder and listOfFilesAndFoldersInPreviousBackupFolder are instance of AFolder
             // let's check anyway
@@ -166,7 +176,7 @@ public class Backup {
     			System.exit(1);
             }
 
-    		System.out.println("Backup finished, see " + destinationFolderPathSubFolder.toString());
+    		System.out.println("Backup finished");
 
         }
         
