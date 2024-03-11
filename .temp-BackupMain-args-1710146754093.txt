@@ -1,0 +1,15 @@
+-XX:+ShowCodeDetailsInExceptionMessages
+-agentlib:jdwp=transport=dt_socket,suspend=y,address=localhost:62091
+"-javaagent:C:\\Users\\JohanDegraeveITSuppo\\eclipse\\java-2023-12\\eclipse\\configuration\\org.eclipse.osgi\\249\\0\\.cp\\lib\\javaagent-shaded.jar"
+-Dfile.encoding=UTF-8
+-Dstdout.encoding=UTF-8
+-Dstderr.encoding=UTF-8
+-classpath
+"C:\\Users\\JohanDegraeveITSuppo\\eclipse-workspace\\PCBackup\\bin;C:\\Users\\JohanDegraeveITSuppo\\eclipse-workspace\\PCBackup\\lib\\com.fasterxml.jackson.annotations.jar;C:\\Users\\JohanDegraeveITSuppo\\eclipse-workspace\\PCBackup\\lib\\com.fasterxml.jackson.core.jar;C:\\Users\\JohanDegraeveITSuppo\\eclipse-workspace\\PCBackup\\lib\\com.fasterxml.jackson.databind.jar"
+main.BackupMainClass
+"--source=D:\\BackupSharePoint-2023-11-27\\Kenniscentrum WWZ"
+"--destination=D:\\SharePointBackupDisk1"
+"--logfilefolder=c:\\temp"
+--type=I
+"--excludedfilelist=D:\\excludedfiles.txt"
+"--excludedpathlist=D:\\excludedpathlist.txt"

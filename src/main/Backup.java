@@ -82,7 +82,7 @@ public class Backup {
         Path destinationFolderPathSubFolder = CreateSubFolder.createSubFolder(commandLineArguments.destination, backupfoldername);
         
         Logger.log("New backup folder created: " + backupfoldername);
-        Logger.log("Reading all files and folders in the source and build the folder structure");// in other words create an instance of AFolder
+        Logger.log("Reading all files and folders in the source and building the folder structure");// in other words create an instance of AFolder
 
     	// first we make a list of files and folder in the sourceFolderPath,
         // for each file or folder we create an instance of AFileOrAFolder
