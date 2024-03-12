@@ -9,6 +9,12 @@ import model.Constants;
 
 public class ListBackupsInFolder {
 
+    /**
+     * get the most recent backup folder, ie of format "yyyy-MM-dd HH;mm;ss (Incremental|Full)"
+     * @param backupFolder root source folder where backups are stored
+     * @return null if none found, this is just the subfolder name, not the full Path
+     * @throws IOException
+     */
     public static Path getMostRecentBackup(Path backupFolder) throws IOException {
         List<Path> backupFolders = getAllBackupFolders(backupFolder);
         if (backupFolders.size() == 0) {
@@ -18,9 +24,9 @@ public class ListBackupsInFolder {
     }
 
     /**
-     * list the backup folder names, ie of format "yyyy-MM-dd HH;mm;ss (Incremental|Full)"
+     * get the most recent backup folder, ie of format "yyyy-MM-dd HH;mm;ss (Incremental|Full)"
      * @param backupFolder root source folder where backups are stored
-     * @param beforeDate we're searching for a backup made before this date (either full or incremental)
+     * @param beforeDate we're searching for a backup made before this date or exactly the same date (either full or incremental)
      * @return null if none found, this is just the subfolder name, not the full Path
      * @throws IOException
      */
@@ -29,10 +35,6 @@ public class ListBackupsInFolder {
     	List<Path> backupFolders = getAllBackupFolders(backupFolder);
     	
     	String returnValue = null;
-    	
-    	// sort the backupFolder paths as per name of the last folder
-    	// after sorting, the first element is the most recent backup
-    	Collections.sort(backupFolders, (a,b) -> b.getFileName().toString().compareTo(a.getFileName().toString()));
     	
     	// foldername for the date, without the "full" or "incremental" because we don't need this
     	SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.backupFolderDateFormat);
@@ -47,7 +49,32 @@ public class ListBackupsInFolder {
     	
     	return returnValue;
     }
-    
+
+    /**
+     * get all backupFolders as array of strings, sorted by date, first element is the most recent
+     * @param backupFolder source to search in
+     * @param beforeBackupWithName search only backupfolders before beforeBackupWithName, we compare backup folder names here, they are chronologically sorted
+     * @return
+     * @throws IOException
+     */
+    public static List<String> getAllBackupFoldersAsStrings(Path backupFolder, String beforeBackupWithName) throws IOException {
+    	
+    	List<Path> backupFolders = getAllBackupFolders(backupFolder);
+    	
+    	List<String> returnvalue = new ArrayList<>();
+    	
+    	for (Path path: backupFolders) {
+    		if (path.getFileName().toString().compareTo(beforeBackupWithName) < 0) {
+    			returnvalue.add(path.getFileName().toString());
+    		}
+    		
+    	}
+    	
+    	return returnvalue;
+    	
+    }
+
+
     private static List<Path> getAllBackupFolders(Path backupFolder) throws IOException {
         List<Path> backupFolders = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(backupFolder, entry ->
@@ -56,9 +83,14 @@ public class ListBackupsInFolder {
                 backupFolders.add(entry);
             }
         }
+        
+    	// sort the backupFolder paths as per name of the last folder
+    	// after sorting, the first element is the most recent backup
+    	Collections.sort(backupFolders, (a,b) -> b.getFileName().toString().compareTo(a.getFileName().toString()));
+
         return backupFolders;
     }
-
+    
     private static boolean isValidBackupFolder(Path folder) {
         String folderName = folder.getFileName().toString();
         return (folderName.contains("Full") || folderName.contains("Incremental"));

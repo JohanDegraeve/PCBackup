@@ -3,6 +3,7 @@ package main;
 import java.io.*;
 import java.nio.file.*;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 import model.AFile;
 import model.AFileOrAFolder;
@@ -43,15 +44,21 @@ public class Restore {
 			
 			Logger.log("Found backup " + latestBackupFolderName + " created before " + (new SimpleDateFormat(Constants.restoreDateFormat).format(commandLineArguments.restoreDate)));
 			
+			// get list of all older backup folders, to support the case were we don't find a specific file in the specified folder, we can start searching in older backups,
+			List<String> olderBackups = ListBackupsInFolder.getAllBackupFoldersAsStrings(sourceFolderPath, latestBackupFolderName);
+			
 			// get the file folderlist.json as AFileOrAFolder
-			AFileOrAFolder listOfFilesAndFoldersInLastBackup = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(sourceFolderPath.resolve(latestBackupFolderName).resolve("folderlist.json"));
+			Path pathWithJsonFile = sourceFolderPath.resolve(latestBackupFolderName).resolve("folderlist.json");
+			Logger.log("Parsing " + pathWithJsonFile.toString());
+			AFileOrAFolder listOfFilesAndFoldersInLastBackup = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(pathWithJsonFile);
 			
 			if (listOfFilesAndFoldersInLastBackup instanceof AFolder) {
 				
-		    	// if subfolder is specified, then we need to search within folderToBackup for an instance of AFileOrAFolder that matches that subfolder
+		    	// if subfolderToRestore is specified, then we need to search within folderToBackup for an instance of AFileOrAFolder that matches that subfolder
 		    	AFolder folderToStart =  getSubFolderAsAFolder((AFolder)listOfFilesAndFoldersInLastBackup, Paths.get(commandLineArguments.subfolderToRestore));
 
-				restore(folderToStart, destinationFolderPath, sourceFolderPath, Paths.get(commandLineArguments.subfolderToRestore));
+		    	Logger.log("Restoring folders and files ...");
+				restore(folderToStart, destinationFolderPath, sourceFolderPath, Paths.get(commandLineArguments.subfolderToRestore), olderBackups);
 				
 			} else {
 				Logger.log("First element in folderlist.json is not a folder, looks like a coding error");
@@ -69,13 +76,17 @@ public class Restore {
 	}
 	
 	/**
-	 * reads folderToBackup, goes through the folders and files one by one, and reads from the correct original backup and restores
+	 * reads folderToBackup, 
+	 * - goes through the folders and files one by one recursively
+	 * - folders will be created in the destination
+	 * - files are copied from the correct original backup and restores
 	 * @param folderToBackup instance of AFolder to backup
 	 * @param destinationFolder where to copy to, this is for example c:\restorefolder. destinationFolder is an absolute Path
 	 * @param sourceBackupRootFolder this is for example c:\backupfolder without the name of the incremental or full folder. sourceBackupRootFolder is an absolute Path
 	 * @param subfolder within the folderToBack that is being restored, will also be used as subfolder in the sourceBackupRootFolder where to find the original file, subfolder is a relative path
+	 * @param olderBackups backups older than the restoredata, this is just a list of strings, specifying the bacup name (eg 2024-03-10 18;11;35 (Incremental)
 	 */
-    private static void restore(AFolder folderToBackup, Path destinationFolder, Path sourceBackupRootFolder, Path subfolder) {
+    private static void restore(AFolder folderToBackup, Path destinationFolder, Path sourceBackupRootFolder, Path subfolder, List<String> olderBackups) {
     	
     	// That folder doesn't exist yet in the destinationFolder
     	// let's create it but check anyway
@@ -101,7 +112,7 @@ public class Restore {
     				
 					Files.createDirectories(folderToCreate);
 					
-					Restore.restore((AFolder)sourceItem, destinationFolder, sourceBackupRootFolder, subfolder.resolve(sourceItem.getName()));
+					Restore.restore((AFolder)sourceItem, destinationFolder, sourceBackupRootFolder, subfolder.resolve(sourceItem.getName()), olderBackups);
 					
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -119,15 +130,59 @@ public class Restore {
     				
 					Files.copy(sourceToCopy, destination, StandardCopyOption.COPY_ATTRIBUTES);
 					
+				} catch (NoSuchFileException e) {
+					Logger.log("   could not find the file " + sourceToCopy.toString());
+					Logger.log("      Will try to find it in older bacups");
+					String olderBackup = tryToFindInOlderBackups((AFile)sourceItem, subfolder, olderBackups, sourceBackupRootFolder);
+					if (olderBackup == null) {
+						Logger.log("      Did not find the missing file in previous backups");
+					} else {
+						Logger.log("      Found the missing file in backup \"" + olderBackup + "\"");
+						try {
+							sourceToCopy = sourceBackupRootFolder.resolve(olderBackup).resolve(subfolder).resolve(sourceItem.getName());
+							Files.copy(sourceToCopy, destination, StandardCopyOption.COPY_ATTRIBUTES);
+							Logger.log("      and copied");
+						} catch (IOException e1) {
+							Logger.log("      but copy failed. Exception occurred : ");
+							Logger.log(e1.toString());
+						}
+					}
 				} catch (IOException e) {
 					Logger.log("Exception in restore, while copying the file " + sourceToCopy.toString() + " to " + destination.toString());
 		            Logger.log(e.toString());
 		            System.exit(1);
 				}
-    			
     		}
     		
     	}
+    }
+    
+    /**
+     * tries to find the sourceItem in older backups, backups older than backupfolder specified in sourceItem<br>
+     * does not copy, just returns the backup foldername
+     * @param sourceItem
+     * @param subfolder
+     * @param olderBackups
+     * @return null if not found, the olderBackup name if found
+     */
+    private static String tryToFindInOlderBackups(AFile sourceItem, Path subfolder, List<String> olderBackups, Path sourceBackupRootFolder) {
+    	
+    	for (String olderBackup: olderBackups) {
+    		
+    		if (sourceItem.getPathToBackup().compareTo(olderBackup) < 0) {
+    			continue;
+    		}
+    		
+    		Path pathToSearch = sourceBackupRootFolder.resolve(olderBackup).resolve(subfolder).resolve(sourceItem.getName());
+    		
+    		if (Files.exists(pathToSearch)) {
+    			return olderBackup;
+    		}
+    		
+    	}
+    	
+    	return null;
+    	
     }
     
     /**
@@ -156,13 +211,13 @@ public class Restore {
         	AFileOrAFolder folderFound = FileAndFolderUtilities.findMatchingItem(new AFolder(subfolders[subfoldersCounter].toString(), ""), deeperAFileOrAFolder.getFileOrFolderList());
         	
         	if (folderFound == null) {
-        		Logger.log("in getSubFolderAsAFolder. foldertorestore " + subfolder + " does not exist in backup.");
+        		Logger.log("You specified " + subfolder + " as subfoldertorestore, but it does not exist in backup.");
                 System.exit(1);
         	}
         	
         	// folderFound must be a directory, if not, it's a file, and user made some mistake
         	if (folderFound instanceof AFile) {
-        		Logger.log("in getSubFolderAsAFolder. foldertorestore " + subfolder + " was given as argument. But this seems to be a file, not a folder");
+        		Logger.log("You specified " + subfolder + " as subfoldertorestore, but this seems to be a file, not a folder");
                 System.exit(1);
         	}
 
@@ -172,8 +227,7 @@ public class Restore {
         	
     	}
     	
-    	return deeperAFileOrAFolder;
-    	
+    	return deeperAFileOrAFolder;   	
     	
     }
 	

@@ -166,6 +166,15 @@ public class CommandLineArguments {
 	// Private static instance of the class
 	private static volatile CommandLineArguments instance;
 	
+	// just to display selected strings at the end
+	private static String excludedfilelist = null;
+	
+	// just to display selected strings at the end
+	private static String excludedpathlist = null;
+	
+	// just to display selected strings at the end
+	private static String foldernamemapping = null;
+	
 	/**
 	 * Private constructor to prevent instantiation outside the class<br>
 	 * Here the arguments are checked for validity
@@ -212,7 +221,7 @@ public class CommandLineArguments {
     		}
     	}
     	
-    	String excludedfilelist = getArgumentValue(ArgumentName.excludedfilelist);
+    	excludedfilelist = getArgumentValue(ArgumentName.excludedfilelist);
     	if (excludedfilelist != null) {
     		Path folderPath = Paths.get(excludedfilelist);
         	if (!(Files.exists(folderPath))) {
@@ -235,7 +244,7 @@ public class CommandLineArguments {
             }
     	}
     	
-    	String excludedpathlist = getArgumentValue(ArgumentName.excludedpathlist);
+    	excludedpathlist = getArgumentValue(ArgumentName.excludedpathlist);
     	if (excludedpathlist != null) {
     		Path folderPath = Paths.get(excludedpathlist);
         	if (!(Files.exists(folderPath))) {
@@ -286,8 +295,7 @@ public class CommandLineArguments {
             try {
     			restoreDate = dateFormat.parse(restoreDateAsString);
     		} catch (ParseException e) {
-    			e.printStackTrace();
-                System.out.println("restoredate seems to be a wrong format. Expected format = YYYY-MM-DD-HH-mm-ss");
+    			System.out.println("restoredate seems to be a wrong format. Expected format = YYYY-MM-DD-HH-mm-ss");
     			giveMinimumArgumentsInfo();System.exit(1);
     		}
     	}
@@ -301,9 +309,9 @@ public class CommandLineArguments {
     	subfolderToRestore = getArgumentValue(ArgumentName.subfoldertorestore);
     	if (subfolderToRestore == null) {subfolderToRestore = "";}
     	
-    	String folderNameMappingPath = getArgumentValue(ArgumentName.foldernamemapping);
+    	foldernamemapping = getArgumentValue(ArgumentName.foldernamemapping);
     	if (folderNameMapping != null) {
-    		folderNameMapping = readFolderNameMappings(folderNameMappingPath);
+    		folderNameMapping = readFolderNameMappings(foldernamemapping);
     	}
     	
     	printeArgumentSummary();
@@ -379,6 +387,30 @@ public class CommandLineArguments {
     		    System.out.println("   Log file :                          " + logfilefolder);
     	} else {
     		    System.out.println("   Log file :                          none");
+    	}
+    	
+    	if (excludedfilelist != null) {
+    		System.out.println("   excludedfilelist :                  " + excludedfilelist);
+    	} else {
+    		System.out.println("   excludedfilelist :                          none");
+    	}
+    	
+    	if (excludedpathlist != null) {
+    		System.out.println("   excludedpathlist :                  " + excludedpathlist);
+    	} else {
+    		System.out.println("   excludedpathlist :                  none");
+    	}
+    	
+    	if (subfolderToRestore.length() > 0) {
+    		System.out.println("   subfoldertorestore :               " + subfolderToRestore);
+    	} else {
+    		System.out.println("   subfoldertorestore :                none, which means the full backup will be restored");
+    	}
+    	
+    	if (foldernamemapping != null) {
+    		System.out.println("   foldernamemapping :                          " + foldernamemapping);
+    	} else {
+    		System.out.println("   foldernamemapping :                 none");
     	}
     	
     	System.out.println("");
