@@ -58,7 +58,7 @@ public class Restore {
 		    	AFolder folderToStart =  getSubFolderAsAFolder((AFolder)listOfFilesAndFoldersInLastBackup, Paths.get(commandLineArguments.subfolderToRestore));
 
 		    	Logger.log("Restoring folders and files ...");
-				restore(folderToStart, destinationFolderPath, sourceFolderPath, Paths.get(commandLineArguments.subfolderToRestore), olderBackups);
+				restore(folderToStart, destinationFolderPath, sourceFolderPath, Paths.get(commandLineArguments.subfolderToRestore), olderBackups, commandLineArguments);
 				
 			} else {
 				Logger.log("First element in folderlist.json is not a folder, looks like a coding error");
@@ -86,7 +86,7 @@ public class Restore {
 	 * @param subfolder within the folderToBack that is being restored, will also be used as subfolder in the sourceBackupRootFolder where to find the original file, subfolder is a relative path
 	 * @param olderBackups backups older than the restoredata, this is just a list of strings, specifying the bacup name (eg 2024-03-10 18;11;35 (Incremental)
 	 */
-    private static void restore(AFolder folderToBackup, Path destinationFolder, Path sourceBackupRootFolder, Path subfolder, List<String> olderBackups) {
+    private static void restore(AFolder folderToBackup, Path destinationFolder, Path sourceBackupRootFolder, Path subfolder, List<String> olderBackups, CommandLineArguments commandLineArguments) {
     	
     	// That folder doesn't exist yet in the destinationFolder
     	// let's create it but check anyway
@@ -112,7 +112,7 @@ public class Restore {
     				
 					Files.createDirectories(folderToCreate);
 					
-					Restore.restore((AFolder)sourceItem, destinationFolder, sourceBackupRootFolder, subfolder.resolve(sourceItem.getName()), olderBackups);
+					Restore.restore((AFolder)sourceItem, destinationFolder, sourceBackupRootFolder, subfolder.resolve(sourceItem.getName()), olderBackups, commandLineArguments);
 					
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -128,7 +128,7 @@ public class Restore {
     			
     			try {
     				
-					Files.copy(sourceToCopy, destination, StandardCopyOption.COPY_ATTRIBUTES);
+					copyFile(sourceToCopy, destination, commandLineArguments);
 					
 				} catch (NoSuchFileException e) {
 					Logger.log("   could not find the file " + sourceToCopy.toString());
@@ -140,13 +140,21 @@ public class Restore {
 						Logger.log("      Found the missing file in backup \"" + olderBackup + "\"");
 						try {
 							sourceToCopy = sourceBackupRootFolder.resolve(olderBackup).resolve(subfolder).resolve(sourceItem.getName());
-							Files.copy(sourceToCopy, destination, StandardCopyOption.COPY_ATTRIBUTES);
+							copyFile(sourceToCopy, destination, commandLineArguments);
 							Logger.log("      and copied");
+						} catch (FileAlreadyExistsException e2) {
+							Logger.log("The file " + sourceToCopy.toString() + " already exists in the destination folder");
+							Logger.log("If you want to restore with overwrite, add the optional argument --overwrite=Y");
+				            System.exit(1);
 						} catch (IOException e1) {
 							Logger.log("      but copy failed. Exception occurred : ");
 							Logger.log(e1.toString());
 						}
 					}
+				} catch (FileAlreadyExistsException e) {
+					Logger.log("The file " + sourceToCopy.toString() + " already exists in the destination folder");
+					Logger.log("If you want to restore with overwrite, add the optional argument --overwrite=Y");
+		            System.exit(1);
 				} catch (IOException e) {
 					Logger.log("Exception in restore, while copying the file " + sourceToCopy.toString() + " to " + destination.toString());
 		            Logger.log(e.toString());
@@ -155,6 +163,15 @@ public class Restore {
     		}
     		
     	}
+    }
+    
+    private static void copyFile(Path source, Path dest, CommandLineArguments commandLineArguments) throws IOException {
+    	if (commandLineArguments.overwrite) {
+    		Files.copy(source, dest, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+    	} else {
+    		Files.copy(source, dest, StandardCopyOption.COPY_ATTRIBUTES);
+    	}
+    	
     }
     
     /**

@@ -91,7 +91,12 @@ public class CommandLineArguments {
         /**
          * paths to exclude, full paths that need to be exclude, starting from the main source folder, ie not start for instance with c:\\..
          */
-        excludedpathlist
+        excludedpathlist,
+        
+        /**
+         * when restoring files, should copy be done in overwrite or not
+         */
+        overwrite
         
         
         // Add more argument names as needed
@@ -153,6 +158,11 @@ public class CommandLineArguments {
      * used to store foldername mappings folderNameMapping
      */
     public HashMap<String, String> folderNameMapping = new HashMap<>();
+    
+    /**
+     * when restoring, should copy be done in overwrite mode or not
+     */
+    public boolean overwrite = false;
     
 	/**
 	 * valid argument names, build based on the Enum ArgumentName
@@ -267,6 +277,14 @@ public class CommandLineArguments {
             }
     	}
     	
+    	String overwriteAsString = getArgumentValue(ArgumentName.overwrite); 
+    	if (overwriteAsString != null) {
+    		if (overwriteAsString.equalsIgnoreCase("y")) {
+    			overwrite = true;
+    		}
+    	}
+    	
+    	
     	if (getArgumentValue(ArgumentName.type) == null) {
     		System.out.println("type argument is missing");
     		giveMinimumArgumentsInfo();System.exit(1);
@@ -380,6 +398,7 @@ public class CommandLineArguments {
     		    SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.backupFolderDateFormat);
     			String backupfoldernameJustTheDate = dateFormat.format(restoreDate);
     		    System.out.println("   Restore date :                      " + backupfoldernameJustTheDate);
+    		    System.out.println("   overwrite    :                      " + (overwrite ? "Y":"N"));
     		    
     	}
     
@@ -528,6 +547,9 @@ public class CommandLineArguments {
             case "excludedpathlist":
             	return true;
             	
+            case "overwrite":
+            	return true;
+            	
             default:
                 // Unknown argument name
                 System.out.println("Unknown argument name: " + argName);
@@ -584,6 +606,7 @@ public class CommandLineArguments {
     	System.out.println("            for RESTORE: folder to where you want to restore (better not to take the same as the original source, maybe)");
     	System.out.println("");
     	System.out.println("Optional arguments:");
+    	System.out.println("  --overwrite: only for restore. If value = y then files that already exist in the destination will be overwritten. Default n (no)");
     	System.out.println("  --logfilefolder: location of the logfile, just the folder name, it must exist.");
     	System.out.println("  --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.");
     	System.out.println("  --excludedpathlist: full paths that need to be exclude, starting from the main source folder, ie not start for instance with c:\\..");
