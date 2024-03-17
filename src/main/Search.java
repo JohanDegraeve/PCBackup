@@ -73,7 +73,7 @@ public class Search {
 		textToWrite += "sep=,\n";
 
 		// we have the results, create text to write to file
-		textToWrite += "type" + seperator + "backupfolder" + seperator + "name of matching item " + seperator + "full path\n";
+		textToWrite += "backupfolder" + seperator + "name of matching item " + seperator + "full path\n";
 		for (Map.Entry<String, String> entry : results.entrySet()) {
             
 			// create the full path where the entry can be found
@@ -81,13 +81,6 @@ public class Search {
 			// entry.getValue() is the specific backup (ie something like '2024-03-10 20;31;55 (Incremental)'
 			// entry.getKey() is the full subfolder, if it's a file , this is inclusive the filename
 			Path fullPath = sourceFolderPath.resolve(entry.getValue()).resolve(entry.getKey());
-			
-			// first check if it's a directory, and add type to textToWrite
-			if (Files.isDirectory(fullPath)) {
-				textToWrite += "folder" + seperator;
-			} else {
-				textToWrite += "file"  + seperator;
-			}
 			
 			// add backupfoldername to textToWrite
 			textToWrite += entry.getValue()  + seperator;
