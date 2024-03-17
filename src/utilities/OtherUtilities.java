@@ -40,7 +40,7 @@ public class OtherUtilities {
 		for (String sourceItem : source) {
 			String seperatorToAdd = "";
 			if (returnValue.length() != 0) {
-				seperatorToAdd = "\\";
+				seperatorToAdd = "\\";// TODO werkt dat op mac?
 			}
 			returnValue = returnValue +seperatorToAdd + sourceItem;
 		}

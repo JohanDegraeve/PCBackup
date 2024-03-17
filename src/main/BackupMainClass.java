@@ -15,6 +15,11 @@ public class BackupMainClass {
         
     	CommandLineArguments commandLineArguments = CommandLineArguments.getInstance(args);
 
+    	if (commandLineArguments.search) {
+    		Search.search();
+    		return;
+    	}
+    	
     	if (commandLineArguments.backup) {
     		
     		Backup.backup();

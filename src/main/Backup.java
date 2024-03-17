@@ -126,7 +126,10 @@ public class Backup {
                 		
                 	}
                 	
-                	Logger.log("   Reading files in folder \"" + path.getFileName().toString() + "\"");
+                	if (Files.isDirectory(path)) {
+                		Logger.log("   Reading files in folder \"" + path.getFileName().toString() + "\"");
+                	}
+                	
                 	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername, commandLineArguments.excludedFiles, commandLineArguments.excludedPaths));
                 	
                 }

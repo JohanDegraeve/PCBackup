@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import utilities.Logger;
@@ -96,10 +97,12 @@ public class CommandLineArguments {
         /**
          * when restoring files, should copy be done in overwrite or not
          */
-        overwrite
+        overwrite,
         
-        
-        // Add more argument names as needed
+        /**
+         * search text, in case type = S
+         */
+        searchtext
         
     }
     
@@ -124,6 +127,11 @@ public class CommandLineArguments {
      * is it a backup  or a restore
      */
     public boolean backup = true;
+    
+    /**
+     * user will search through the backups, if true then backup value is ignored
+     */
+    public boolean search = false;
     
     /**
      *  Folder where logfile should be written<br>
@@ -164,6 +172,10 @@ public class CommandLineArguments {
      */
     public boolean overwrite = false;
     
+    public String searchText = null;
+   
+	public Pattern searchTextPattern = null;
+
 	/**
 	 * valid argument names, build based on the Enum ArgumentName
 	 */
@@ -191,6 +203,26 @@ public class CommandLineArguments {
 	 */
     private CommandLineArguments() {
         
+    	if (getArgumentValue(ArgumentName.type) == null) {
+    		System.out.println("type argument is missing");
+    		giveMinimumArgumentsInfo();System.exit(1);
+    	} else {
+    		if (getArgumentValue(ArgumentName.type).equalsIgnoreCase("F")) {
+    			fullBackup = true;
+    			backup = true;
+    		} else if (getArgumentValue(ArgumentName.type).equalsIgnoreCase("I")) {
+    			fullBackup = false;
+    			backup = true;
+    		} else if (getArgumentValue(ArgumentName.type).equalsIgnoreCase("R")) {
+    			backup = false;
+    		} else if (getArgumentValue(ArgumentName.type).equalsIgnoreCase("S")) {
+    			search = true;
+    		} else {
+    			System.out.println("Invalid value for type " + getArgumentValue(ArgumentName.type));
+        		giveMinimumArgumentsInfo();System.exit(1);
+    		}
+    	}
+
     	source = getArgumentValue(ArgumentName.source);
     	if (source == null) {
     		System.out.println("source argument is missing");
@@ -215,6 +247,13 @@ public class CommandLineArguments {
         		System.out.println("folder " + destination + " does not exist. Create it first or check the argument 'destination'");
         		giveMinimumArgumentsInfo();System.exit(1);
         	}
+        	
+        	// check also that folderPath is a directory
+        	if (!Files.isDirectory(folderPath)){
+        		System.out.println(destination + " seems to be a file, not a folder. Check the argument 'destination'");
+        		giveMinimumArgumentsInfo();System.exit(1);
+        	}
+        	
     	}
     	
     	logfilefolder = getArgumentValue(ArgumentName.logfilefolder);
@@ -283,31 +322,9 @@ public class CommandLineArguments {
     			overwrite = true;
     		}
     	}
-    	
-    	
-    	if (getArgumentValue(ArgumentName.type) == null) {
-    		System.out.println("type argument is missing");
-    		giveMinimumArgumentsInfo();System.exit(1);
-    	} else {
-    		if (getArgumentValue(ArgumentName.type).equalsIgnoreCase("F")) {
-    			fullBackup = true;
-    			backup = true;
-    		} else if (getArgumentValue(ArgumentName.type).equalsIgnoreCase("I")) {
-    			fullBackup = false;
-    			backup = true;
-    		} else if (getArgumentValue(ArgumentName.type).equalsIgnoreCase("R")) {
-    			backup = false;
-    		} else {
-    			System.out.println("Invalid value for type " + getArgumentValue(ArgumentName.type));
-        		giveMinimumArgumentsInfo();System.exit(1);
-    		}
-    	}
-
+    	    	
     	String restoreDateAsString = getArgumentValue(ArgumentName.restoredate); 
-    	if (restoreDateAsString != null && backup) {
-            System.out.println("You gave a restore date but that's not necessary when doing a backup.");
-			giveMinimumArgumentsInfo();System.exit(1);
-    	} else if (restoreDateAsString != null) {
+    	if (restoreDateAsString != null) {
         	// try to parse the restore data
             SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.restoreDateFormat);
             try {
@@ -317,12 +334,29 @@ public class CommandLineArguments {
     			giveMinimumArgumentsInfo();System.exit(1);
     		}
     	}
+    	
+    	searchText = getArgumentValue(ArgumentName.searchtext);
+    	if (search) {
+    		if (searchText != null) {
+    			if (searchText.length() == 0) {
+    				System.out.println("searchtext seems an empty string, check the argument searchtext");
+        			giveMinimumArgumentsInfo();System.exit(1);
+    			} else {
+    				searchTextPattern = Pattern.compile(searchText);
+    			}
+    		} else {
+    			System.out.println("searchtext argument missing");
+    			giveMinimumArgumentsInfo();System.exit(1);
+    		}
+    	}
 
     	// if a restore is requested but the restoreDate is null, then stop
     	if (!backup && restoreDate == null) {
     		System.out.println("Type is restore but no restoredate is given. Add argument restoredate in format " + Constants.restoreDateFormat);
     		giveMinimumArgumentsInfo();System.exit(1);
     	}
+    	
+    	
     	
     	subfolderToRestore = getArgumentValue(ArgumentName.subfoldertorestore);
     	if (subfolderToRestore == null) {subfolderToRestore = "";}
@@ -380,7 +414,11 @@ public class CommandLineArguments {
     private void printeArgumentSummary() {
     	
     	System.out.println("You selected following arguments");
-    	if (backup) {
+    	if (search) {
+    		System.out.println("   Type :                              search text through backups");
+    		System.out.println("   Folder where backups are stored :   " + source);
+    		System.out.println("   Searchtext:                         " + searchText);
+    	} else if (backup) {
     		// BACKUP
     		if (fullBackup) {
     			System.out.println("   Type :                              full backup");	
@@ -393,7 +431,7 @@ public class CommandLineArguments {
     		
     	} else {
     		// RESTORE
-    		    System.out.println("   Folder where backup is stored :     " + source);
+    		    System.out.println("   Folder where backups are stored :   " + source);
     		    System.out.println("   Destination to restore to :         " + destination);
     		    SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.backupFolderDateFormat);
     			String backupfoldernameJustTheDate = dateFormat.format(restoreDate);
@@ -408,29 +446,32 @@ public class CommandLineArguments {
     		    System.out.println("   Log file :                          none");
     	}
     	
-    	if (excludedfilelist != null) {
-    		System.out.println("   excludedfilelist :                  " + excludedfilelist);
-    	} else {
-    		System.out.println("   excludedfilelist :                          none");
+    	if (!search) {
+        	if (excludedfilelist != null) {
+        		System.out.println("   excludedfilelist :                  " + excludedfilelist);
+        	} else {
+        		System.out.println("   excludedfilelist :                          none");
+        	}
+        	
+        	if (excludedpathlist != null) {
+        		System.out.println("   excludedpathlist :                  " + excludedpathlist);
+        	} else {
+        		System.out.println("   excludedpathlist :                  none");
+        	}
+        	
+        	if (subfolderToRestore.length() > 0) {
+        		System.out.println("   subfoldertorestore :                " + subfolderToRestore);
+        	} else {
+        		System.out.println("   subfoldertorestore :                none, which means the full backup will be restored");
+        	}
+        	
+        	if (foldernamemapping != null) {
+        		System.out.println("   foldernamemapping :                          " + foldernamemapping);
+        	} else {
+        		System.out.println("   foldernamemapping :                 none");
+        	}
     	}
     	
-    	if (excludedpathlist != null) {
-    		System.out.println("   excludedpathlist :                  " + excludedpathlist);
-    	} else {
-    		System.out.println("   excludedpathlist :                  none");
-    	}
-    	
-    	if (subfolderToRestore.length() > 0) {
-    		System.out.println("   subfoldertorestore :               " + subfolderToRestore);
-    	} else {
-    		System.out.println("   subfoldertorestore :                none, which means the full backup will be restored");
-    	}
-    	
-    	if (foldernamemapping != null) {
-    		System.out.println("   foldernamemapping :                          " + foldernamemapping);
-    	} else {
-    		System.out.println("   foldernamemapping :                 none");
-    	}
     	
     	System.out.println("");
     	
@@ -528,7 +569,7 @@ public class CommandLineArguments {
                 configureLogFile(argValue);
                 return true;
             case "type":
-            	if (!(argValue.startsWith("f") || argValue.startsWith("F") || argValue.startsWith("I") || argValue.startsWith("i") || argValue.startsWith("R") || argValue.startsWith("r"))) {
+            	if (!(argValue.startsWith("f") || argValue.startsWith("F") || argValue.startsWith("I") || argValue.startsWith("i") || argValue.startsWith("R") || argValue.startsWith("r") || argValue.startsWith("s") || argValue.startsWith("S"))) {
             		return false;
             	}
             	return true;
@@ -548,6 +589,9 @@ public class CommandLineArguments {
             	return true;
             	
             case "overwrite":
+            	return true;
+            	
+            case "searchtext":
             	return true;
             	
             default:
@@ -597,13 +641,16 @@ public class CommandLineArguments {
     */
     private static void giveMinimumArgumentsInfo() {
     	System.out.println("Mandatory arguments:");
-    	System.out.println("  --type: F for Full backup, I for incremental backup, R for restore.");
+    	System.out.println("  --type: F for Full backup, I for incremental backup, R for restore, S for searching in backups.");
     	System.out.println("  --source:");
     	System.out.println("            for BACKUP : the folder that you want to backup, the contents will be backedup");
     	System.out.println("            for RESTORE: the folder where your backup is stored");
+    	System.out.println("            for SEARCH: the folder where your backup is stored");
     	System.out.println("  --destination:");
     	System.out.println("            for BACKUP : folder where you want to backup to");
     	System.out.println("            for RESTORE: folder to where you want to restore (better not to take the same as the original source, maybe)");
+    	System.out.println("            for SEARCH: folder where the file with searchresults will be written to. The folder must exist.");
+    	System.out.println("                the file with the search results will be named searchresults.csv. If that file already exists, then it will be named for intance searchresults (1).txt");
     	System.out.println("");
     	System.out.println("Optional arguments:");
     	System.out.println("  --overwrite: only for restore. If value = y then files that already exist in the destination will be overwritten. Default n (no)");
@@ -622,6 +669,12 @@ public class CommandLineArguments {
     	System.out.print(  "              So when we reuse a hard disk with backups taken on another PC, and the folder on that disk is named \"XDrive Documenten\", while on the new PC, ");
     	System.out.println("where we do the backup, it's named \"XDrive Documents\", then we need to add the line 'XDrive Documents=XDrive Documenten' in the file that is specified here.");
     	System.out.println("              Then if we do a backup on that new PC, the app sees the folder XDrive Documents, then the file folderlist.json will contain XDrive Documenten.");
+    	System.out.println("  --searchtext: the text to search for, mandatory in case type = S");
+    	System.out.println("                   the searchtext is handled as a regular expression.");
+    	System.out.println("                   Examples:");
+    	System.out.println("                      - to search for files with 'Trident' or 'Jabra', the searchtext you specify here would be '\\b(?:Trident|Jabra)\\b'");
+    	System.out.println("                      - to search for files with 'Trident' and 'Jabra', the searchtext you specify here would be '(?=.*\\bTrident\\b)(?=.*\\bJabra\\b)'");
+
     }
     
 }

@@ -8,16 +8,16 @@ public class WriteToFile {
 
     /**
      * write textToWrite to file, defined by path
+     * @throws IOException 
      */
-    public static void writeToFile(String textToWrite, String path) {
+    public static void writeToFile(String textToWrite, String path) throws IOException {
     	
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(path))) {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(path));
         	
-            writer.write(textToWrite);
-            writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+	    writer.write(textToWrite);
+	    writer.flush();
+	    
+	    writer.close();
+	    
     }
 }
