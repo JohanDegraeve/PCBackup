@@ -129,7 +129,10 @@ public class Search {
 		if (matcher.find()) {
 			
 			// path without backup folder name
-			Path pathWhereItemWasFound = subfolder.resolve(aFileOrAFolder.getName());
+			Path pathWhereItemWasFound = subfolder;
+			if (aFileOrAFolder instanceof AFile) {
+				pathWhereItemWasFound = pathWhereItemWasFound.resolve(aFileOrAFolder.getName());
+			}
 			// if not yet in results, then add it, with the backup folername where the latest version is stored
 			if (!results.containsKey(pathWhereItemWasFound.toString())) {
 				results.put(pathWhereItemWasFound.toString(), aFileOrAFolder.getPathToBackup());
