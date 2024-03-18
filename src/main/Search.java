@@ -73,23 +73,45 @@ public class Search {
 		textToWrite += "sep=,\n";
 
 		// we have the results, create text to write to file
-		textToWrite += "backupfolder" + seperator + "name of matching item " + seperator + "full path\n";
+		textToWrite += "name of matching item" + seperator + "type" + seperator + "path to backup folder" + seperator + "folder name within backup\n";
 		for (Map.Entry<String, String> entry : results.entrySet()) {
             
-			// create the full path where the entry can be found
-			// source FolderPath is source where all backups are stored
-			// entry.getValue() is the specific backup (ie something like '2024-03-10 20;31;55 (Incremental)'
-			// entry.getKey() is the full subfolder, if it's a file , this is inclusive the filename
-			Path fullPath = sourceFolderPath.resolve(entry.getValue()).resolve(entry.getKey());
+			// first determine if it's a file or a folder by checking and removing the last part of the key
+			// key ends with either -AFOLDER or -AFILE
+			// and get the real path
+			boolean itsafile = true;
+			String thePath = "";
+			if (entry.getKey().endsWith( "-AFOLDER")) {
+				itsafile = false;
+				thePath = entry.getKey().substring(0, entry.getKey().length() - 8);
+			} else {
+				thePath = entry.getKey().substring(0, entry.getKey().length() - 6);
+			}
+
+			// full backupfolder example /Users/johandegraeve/Downloads/dest/2024-03-10 17;53;19 (Incremental)
+			Path backupFolder = sourceFolderPath.resolve(entry.getValue());
 			
-			// add backupfoldername to textToWrite
-			textToWrite += entry.getValue()  + seperator;
+			// example submap1/submap12/submap121/Jabra Speak 510 user manual_EN_English_RevL.pdf
+			Path subFolderWithItem = Paths.get(thePath);
 			
-			// add just the name of the file or the folder
-			textToWrite += fullPath.getFileName().toString()  + seperator;
+			// write name of matching item, this is just the last part of subFolderWithItem
+			textToWrite += subFolderWithItem.getFileName().toString()  + seperator;
 			
-			// now add the full path
-			textToWrite += fullPath.toString();
+			// write if it's a file or a folder
+			textToWrite += (itsafile ? "file":"folder") + seperator; 
+					
+			// add path to backup folder
+			textToWrite += backupFolder.toString()  + seperator;
+			
+			// now add the full path, if it's a file, then just the folder, not the filename
+			if (itsafile) {
+				if (subFolderWithItem.getParent() != null) {
+					textToWrite += subFolderWithItem.getParent().toString();
+				} // else we write nothing because that would mean it's a file in the root folder, getparent is null, so we just don't write anything
+			} else {
+				textToWrite += subFolderWithItem.toString();
+			}
+			
 			
 			// add a newline
 			textToWrite += "\n";
@@ -133,9 +155,18 @@ public class Search {
 			if (aFileOrAFolder instanceof AFile) {
 				pathWhereItemWasFound = pathWhereItemWasFound.resolve(aFileOrAFolder.getName());
 			}
+			
+			// if it's a file, then we add "-AFILE" at the end, otherwise "-AFOLDER"
+			String finalKeyToAdd = pathWhereItemWasFound.toString();
+			if (aFileOrAFolder instanceof AFile) {
+				finalKeyToAdd += "-AFILE";
+			} else {
+				finalKeyToAdd += "-AFOLDER";
+			}
+			
 			// if not yet in results, then add it, with the backup folername where the latest version is stored
-			if (!results.containsKey(pathWhereItemWasFound.toString())) {
-				results.put(pathWhereItemWasFound.toString(), aFileOrAFolder.getPathToBackup());
+			if (!results.containsKey(finalKeyToAdd)) {
+				results.put(finalKeyToAdd, aFileOrAFolder.getPathToBackup());
 			}
 			
 			
