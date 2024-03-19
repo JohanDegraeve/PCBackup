@@ -55,6 +55,11 @@ public class CreateFullBackup {
 
 	}
 	
+    public static Path getMostRecentBackup(Path backupFolder) throws IOException {
+        List<Path> backupFolders = getAllBackupFolders(backupFolder);
+        return Collections.max(backupFolders);
+    }
+
 	private static void copyFilesAndFoldersFromSourceToDest(List<AFileOrAFolder> listOfFilesAndFoldersInSourceFolder, Path sourceFolderPath, Path destinationFolderPath, boolean createEmptyFolders) {
 
 		for (AFileOrAFolder aFileOrAFolder: listOfFilesAndFoldersInSourceFolder) {
@@ -125,11 +130,6 @@ public class CreateFullBackup {
 
 	}
 	
-    public static Path getMostRecentBackup(Path backupFolder) throws IOException {
-        List<Path> backupFolders = getAllBackupFolders(backupFolder);
-        return Collections.max(backupFolders);
-    }
-
     private static List<Path> getAllBackupFolders(Path backupFolder) throws IOException {
         List<Path> backupFolders = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(backupFolder, entry -> Files.isDirectory(entry) && isValidBackupFolder(entry))) {

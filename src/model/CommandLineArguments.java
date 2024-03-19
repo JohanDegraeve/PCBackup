@@ -102,7 +102,17 @@ public class CommandLineArguments {
         /**
          * search text, in case type = S
          */
-        searchtext
+        searchtext,
+        
+        /**
+         * for testing purposes only, add the path length while converting a full directory a AFileOrAFolder
+         */
+        addpathlengthforallfolders,
+        
+        /**
+         * for testing purposes only, add the path length while converting a full directory a AFileOrAFolder, only if the folder contains new or modified files
+         */
+        addpathlengthforfolderswithnewormodifiedcontent
         
     }
     
@@ -175,6 +185,10 @@ public class CommandLineArguments {
     public String searchText = null;
    
 	public Pattern searchTextPattern = null;
+	
+	public boolean addpathlengthforallfolders = false;
+	
+	public boolean addpathlengthforfolderswithnewormodifiedcontent = false;
 
 	/**
 	 * valid argument names, build based on the Enum ArgumentName
@@ -356,7 +370,19 @@ public class CommandLineArguments {
     		giveMinimumArgumentsInfo();System.exit(1);
     	}
     	
+    	String addpathlengthforallfoldersAsString = getArgumentValue(ArgumentName.addpathlengthforallfolders);
+    	if (addpathlengthforallfoldersAsString != null) {
+    		if (addpathlengthforallfoldersAsString.equalsIgnoreCase("true")) {
+    			addpathlengthforallfolders = true;
+    		}
+    	}
     	
+    	String addpathlengthforfolderswithnewormodifiedcontentAsString = getArgumentValue(ArgumentName.addpathlengthforfolderswithnewormodifiedcontent);
+    	if (addpathlengthforfolderswithnewormodifiedcontentAsString != null) {
+    		if (addpathlengthforfolderswithnewormodifiedcontentAsString.equalsIgnoreCase("true")) {
+    			addpathlengthforfolderswithnewormodifiedcontent = true;
+    		}
+    	}
     	
     	subfolderToRestore = getArgumentValue(ArgumentName.subfoldertorestore);
     	if (subfolderToRestore == null) {subfolderToRestore = "";}
@@ -592,6 +618,12 @@ public class CommandLineArguments {
             	return true;
             	
             case "searchtext":
+            	return true;
+            	
+            case "addpathlengthforallfolders":
+            	return true;
+            	
+            case "addpathlengthforfolderswithnewormodifiedcontent":
             	return true;
             	
             default:

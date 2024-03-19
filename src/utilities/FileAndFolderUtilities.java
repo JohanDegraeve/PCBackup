@@ -28,9 +28,10 @@ public class FileAndFolderUtilities {
      * @return an instance of either a folder or a file
      * @param excludefilelist array of strings that should be ignored as filename
      * @param excludedpathlist array of strings that should be ignored as foldername
+     * @param addpathlength for testing only
      * @throws IOException
      */
-    public static AFileOrAFolder createAFileOrAFolder(Path folderOrStringPath, String backupFolderName, List<String> excludefilelist, List<String> excludedpathlist) throws IOException {
+    public static AFileOrAFolder createAFileOrAFolder(Path folderOrStringPath, String backupFolderName, List<String> excludefilelist, List<String> excludedpathlist, boolean addpathlength) throws IOException {
 
     	String fileOrFolderNameWithoutFullPath = folderOrStringPath.getFileName().toString();
 
@@ -73,10 +74,14 @@ public class FileAndFolderUtilities {
                 		
                 	}
                 	
-                	returnValue.addFileOrFolder(createAFileOrAFolder(path, backupFolderName, excludefilelist, excludedpathlist));
+                	returnValue.addFileOrFolder(createAFileOrAFolder(path, backupFolderName, excludefilelist, excludedpathlist, addpathlength));
                 		
                 }
                 
+            }
+            
+            if (addpathlength) {
+                System.out.println("path length = " + String.format("%5s", folderOrStringPath.toString().length()) + "; path = " + folderOrStringPath.toString());
             }
             
             return returnValue;
@@ -109,7 +114,7 @@ public class FileAndFolderUtilities {
             // Compare and update files and folders
             if (sourceFileOrFolder instanceof AFile  && destFileOrFolder instanceof AFile) {
                 // Compare and update files
-                compareAndUpdateFiles((AFile) sourceFileOrFolder, (AFile) destFileOrFolder, sourceFolderPath, destBackupFolderPath, subfolders, backupFolderName);
+                compareAndUpdateFiles((AFile) sourceFileOrFolder, (AFile) destFileOrFolder, sourceFolderPath, destBackupFolderPath, subfolders, backupFolderName, commandLineArguments);
             } else if (!(sourceFileOrFolder instanceof AFile) && !(destFileOrFolder instanceof AFile)) {
                 // Compare and update folders
                 compareAndUpdateFolders((AFolder) sourceFileOrFolder, (AFolder) destFileOrFolder, sourceFolderPath, destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFileOrFolder.getName()), backupFolderName, level, commandLineArguments);
@@ -162,7 +167,7 @@ public class FileAndFolderUtilities {
         }
 
 
-        private static void compareAndUpdateFiles(AFile sourceFile, AFile destFile, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName) {
+        private static void compareAndUpdateFiles(AFile sourceFile, AFile destFile, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName, CommandLineArguments commandLineArguments) {
             // Compare and update files based on last modified timestamp
             if (sourceFile.getts() > destFile.getts()) {
             	
@@ -185,7 +190,12 @@ public class FileAndFolderUtilities {
                 
                 try {
                 	// add sourcefile name to dest and source file, it's the same name
-					Files.copy(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, sourceFile.getName())), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFile.getName())), StandardCopyOption.COPY_ATTRIBUTES);
+                	Path destPath = PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFile.getName()));
+					Files.copy(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, sourceFile.getName())), destPath, StandardCopyOption.COPY_ATTRIBUTES);
+	                if (commandLineArguments.addpathlengthforfolderswithnewormodifiedcontent) {
+	                    System.out.println("path length = " + String.format("%5s", destPath.toString().length()) + "; path = " + destPath.toString());
+	                }
+
 				} catch (IOException e) {
 					e.printStackTrace();
 		            Logger.log("Exception in compareAndUpdateFiles(AFile,AFile) while copying a file from " + PathUtilities.concatenatePaths(sourceFolderPath, subfolders).toString() + " to " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));
@@ -228,10 +238,10 @@ public class FileAndFolderUtilities {
                 if (matchingDestItem == null) {
                 	
                     destContents.add(sourceItem);
-                	Logger.log("   Adding new item : " + OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, originalSourceItemName)));
-                	
                 	if (sourceItem instanceof AFile) {
 
+                    	Logger.log("   Adding new file : " + OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, originalSourceItemName)));
+                    	
                         // create the folder in the destination if it doesn't exist yet
                         try {
         					Files.createDirectories(PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));
@@ -244,7 +254,12 @@ public class FileAndFolderUtilities {
                         
                         try {
                         	// add sourcefile name to dest and source file, it's the same name
-        					Files.copy(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)), StandardCopyOption.COPY_ATTRIBUTES);
+                        	Path destPath = PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName));
+        					Files.copy(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)), destPath, StandardCopyOption.COPY_ATTRIBUTES);
+        	                if (commandLineArguments.addpathlengthforfolderswithnewormodifiedcontent) {
+        	                    System.out.println("path length = " + String.format("%5s", destPath.toString().length()) + "; path = " + destPath.toString());
+        	                }
+
 
         				} catch (IOException e) {
         					e.printStackTrace();
@@ -256,9 +271,11 @@ public class FileAndFolderUtilities {
 
                 	} else if (sourceItem instanceof AFolder) {// it has to be an instance of AFolder but let's check anyway
                 		
+                    	Logger.log("   Adding new folder and it's contents : " + OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, originalSourceItemName)));
+
                 		// we need to copy the complete contents of the folder from source to dest
                 		try {
-							OtherUtilities.copyFolder(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)));
+							OtherUtilities.copyFolder(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)), commandLineArguments);
 						} catch (IOException e) {
 							e.printStackTrace();
         		            Logger.log("Exception in compareAndUpdateFiles(AFileOrAFolder, AFileOrAFolder.. while copying a folder from " + PathUtilities.concatenatePaths(sourceFolderPath, subfolders).toString() + " to " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));

@@ -6,6 +6,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -130,7 +131,7 @@ public class Backup {
                 		Logger.log("   Reading files in folder \"" + path.getFileName().toString() + "\"");
                 	}
                 	
-                	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername, commandLineArguments.excludedFiles, commandLineArguments.excludedPaths));
+                	listOfFilesAndFoldersInSourceFolder.getFileOrFolderList().add(FileAndFolderUtilities.createAFileOrAFolder(path, backupfoldername, commandLineArguments.excludedFiles, commandLineArguments.excludedPaths, commandLineArguments.addpathlengthforallfolders));
                 	
                 }
                 
@@ -185,6 +186,32 @@ public class Backup {
         
         
 
+	}
+	
+	/**
+	 * 
+	 * @param backupName eg backupName = 2024-03-19 23;06;08 (Incremental)
+	 * @return date, in this example 2024-03-19 23;06;08 local time in Date object
+	 */
+	private static Date getBackupDate(String backupName) {
+		
+		if (backupName == null) {return new Date(0);}
+		
+		SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.backupFolderDateFormat);
+		
+		String dateAsString = backupName.substring(0,18);
+		
+		try {
+			return dateFormat.parse(dateAsString);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Logger.log("");
+			System.exit(1);
+		}
+		
+		return new Date(0);
+		
 	}
 	
 }

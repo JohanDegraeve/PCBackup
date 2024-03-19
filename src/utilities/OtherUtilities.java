@@ -1,5 +1,6 @@
 package utilities;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -40,7 +41,7 @@ public class OtherUtilities {
 		for (String sourceItem : source) {
 			String seperatorToAdd = "";
 			if (returnValue.length() != 0) {
-				seperatorToAdd = "\\";// TODO werkt dat op mac?
+				seperatorToAdd = File.separator;
 			}
 			returnValue = returnValue +seperatorToAdd + sourceItem;
 		}
@@ -76,22 +77,42 @@ public class OtherUtilities {
 	 * recursively copying a folder from a source directory to a destination directory
 	 * @param source
 	 * @param destination
+	 * @param commandLineArguments
 	 * @throws IOException
 	 */
-	public static void copyFolder(Path source, Path destination) throws IOException {
+	public static void copyFolder(Path source, Path destination, CommandLineArguments commandLineArguments) throws IOException {
         Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                 // Create corresponding directory in the destination
                 Path targetDir = destination.resolve(source.relativize(dir));
                 Files.createDirectories(targetDir);
+                if (commandLineArguments.addpathlengthforfolderswithnewormodifiedcontent) {
+                    System.out.println("path length = " + String.format("%5s", targetDir.toString().length()) + "; path = " + targetDir.toString());
+                }
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            	
+            	Path destinationPath = destination.resolve(source.relativize(file));
+            	
+        		// check if the file is in the list of files to exclude, example .DS_Store
+        		if (commandLineArguments.excludedFiles.contains(destinationPath.getFileName().toString())) {
+        			return FileVisitResult.CONTINUE;
+        		}
+        		
+        		// check if the file is of format .849C9593-D756-4E56-8D6E-42412F2A707B seems a Microsoft hidden file
+        		if (OtherUtilities.fileNeedsToBeIgnored(destinationPath.getFileName().toString())) {
+        			return FileVisitResult.CONTINUE;
+        		}
+            	
                 // Copy each file to the destination
-                Files.copy(file, destination.resolve(source.relativize(file)), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+                Files.copy(file, destinationPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+                if (commandLineArguments.addpathlengthforfolderswithnewormodifiedcontent) {
+                    System.out.println("path length = " + String.format("%5s", destinationPath.toString().length()) + "; path = " + destinationPath.toString());
+                }
                 return FileVisitResult.CONTINUE;
             }
         });
