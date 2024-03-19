@@ -186,8 +186,6 @@ public class FileAndFolderUtilities {
                 try {
                 	// add sourcefile name to dest and source file, it's the same name
 					Files.copy(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, sourceFile.getName())), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFile.getName())), StandardCopyOption.COPY_ATTRIBUTES);
-					// for testing only
-					Logger.log("      destination path length = " + PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFile.getName())).toString().length());
 				} catch (IOException e) {
 					e.printStackTrace();
 		            Logger.log("Exception in compareAndUpdateFiles(AFile,AFile) while copying a file from " + PathUtilities.concatenatePaths(sourceFolderPath, subfolders).toString() + " to " + PathUtilities.concatenatePaths(destBackupFolderPath, subfolders));
@@ -247,8 +245,6 @@ public class FileAndFolderUtilities {
                         try {
                         	// add sourcefile name to dest and source file, it's the same name
         					Files.copy(PathUtilities.concatenatePaths(sourceFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)), PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)), StandardCopyOption.COPY_ATTRIBUTES);
-        					// for testing only
-        					Logger.log("      destination path length = " + PathUtilities.concatenatePaths(destBackupFolderPath, OtherUtilities.addString(subfolders, originalSourceItemName)).toString().length());
 
         				} catch (IOException e) {
         					e.printStackTrace();
