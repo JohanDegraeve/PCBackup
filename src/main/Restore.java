@@ -37,11 +37,11 @@ public class Restore {
 			String latestBackupFolderName = ListBackupsInFolder.getMostRecentBackup(sourceFolderPath, commandLineArguments.restoreDate);
 			
 			if (latestBackupFolderName == null) {
-                Logger.log("No backups are found that were created before " + (new SimpleDateFormat(Constants.restoreDateFormat)).format(commandLineArguments.restoreDate));
+                Logger.log("No backups are found that were created before " + (new SimpleDateFormat(Constants.OUTPUTDATEFORMAT_STRING)).format(commandLineArguments.restoreDate));
                 System.exit(1);
 			}
 			
-			Logger.log("Found backup " + latestBackupFolderName + " created before " + (new SimpleDateFormat(Constants.restoreDateFormat).format(commandLineArguments.restoreDate)));
+			Logger.log("Found backup " + latestBackupFolderName + " created before " + (new SimpleDateFormat(Constants.OUTPUTDATEFORMAT_STRING).format(commandLineArguments.restoreDate)));
 			
 			// get list of all older backup folders, to support the case were we don't find a specific file in the specified folder, we can start searching in older backups,
 			List<String> olderBackups = ListBackupsInFolder.getAllBackupFoldersAsStrings(sourceFolderPath, latestBackupFolderName);
@@ -144,6 +144,7 @@ public class Restore {
 						} catch (FileAlreadyExistsException e2) {
 							Logger.log("The file " + sourceToCopy.toString() + " already exists in the destination folder");
 							Logger.log("If you want to restore with overwrite, add the optional argument --overwrite=Y");
+							Logger.log("Restore interrupted");
 				            System.exit(1);
 						} catch (IOException e1) {
 							Logger.log("      but copy failed. Exception occurred : ");
@@ -153,6 +154,7 @@ public class Restore {
 				} catch (FileAlreadyExistsException e) {
 					Logger.log("The file " + sourceToCopy.toString() + " already exists in the destination folder");
 					Logger.log("If you want to restore with overwrite, add the optional argument --overwrite=Y");
+					Logger.log("Restore interrupted");
 		            System.exit(1);
 				} catch (IOException e) {
 					Logger.log("Exception in restore, while copying the file " + sourceToCopy.toString() + " to " + destination.toString());

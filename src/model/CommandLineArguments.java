@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import utilities.Logger;
+import utilities.OtherUtilities;
 
 /**
  * all the needed arguments, like Source folder, destination folder, ...
@@ -115,6 +116,16 @@ public class CommandLineArguments {
         writesearchto,
         
         /**
+         * for search, backups older than this date will not be searched in
+         */
+        startsearchdate,
+        
+        /**
+         * for search, backups younger than this date will not be searched in
+         */
+        endsearchdate,
+        
+        /**
          * for testing purposes only, add the path length while converting a full directory a AFileOrAFolder
          */
         addpathlengthforallfolders,
@@ -125,6 +136,16 @@ public class CommandLineArguments {
         addpathlengthforfolderswithnewormodifiedcontent
         
     }
+    
+    /**
+     * for search, backups younger than this date will not be searched in
+     */
+    public Date startSearchDate = new Date(0);
+    
+    /**
+     * for search, backups younger than this date will not be searched in
+     */
+    public Date endSearchDate = new Date();
     
     /**
 	 * Folder where the actual source that we're backing up is stored<br>
@@ -412,7 +433,7 @@ public class CommandLineArguments {
     	String restoreDateAsString = getArgumentValue(ArgumentName.restoredate); 
     	if (restoreDateAsString != null) {
         	// try to parse the restore data
-            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.restoreDateFormat);
+            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.ARGUMENTDATEFORMAT_STRING);
             try {
     			restoreDate = dateFormat.parse(restoreDateAsString);
     		} catch (ParseException e) {
@@ -435,10 +456,34 @@ public class CommandLineArguments {
     			giveMinimumArgumentsInfo();System.exit(1);
     		}
     	}
+    	
+    	String endSearchDateAsString = getArgumentValue(ArgumentName.endsearchdate);
+    	if (endSearchDateAsString != null) {
+    		// try to parse the restore data
+            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.ARGUMENTDATEFORMAT_STRING);
+            try {
+    			endSearchDate = dateFormat.parse(endSearchDateAsString);
+    		} catch (ParseException e) {
+    			System.out.println("endsearchdate seems to be a wrong format. Expected format = " + Constants.ARGUMENTDATEFORMAT_STRING);
+    			giveMinimumArgumentsInfo();System.exit(1);
+    		}
+    	}
+
+    	String startSearchDateAsString = getArgumentValue(ArgumentName.startsearchdate);
+    	if (startSearchDateAsString != null) {
+    		// try to parse the restore data
+            SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.ARGUMENTDATEFORMAT_STRING);
+            try {
+    			startSearchDate = dateFormat.parse(startSearchDateAsString);
+    		} catch (ParseException e) {
+    			System.out.println("startsearchdate seems to be a wrong format. Expected format = " + Constants.ARGUMENTDATEFORMAT_STRING);
+    			giveMinimumArgumentsInfo();System.exit(1);
+    		}
+    	}
 
     	// if a restore is requested but the restoreDate is null, then stop
     	if (!backup && restoreDate == null) {
-    		System.out.println("Type is restore but no restoredate is given. Add argument restoredate in format " + Constants.restoreDateFormat);
+    		System.out.println("Type is restore but no restoredate is given. Add argument restoredate in format " + Constants.ARGUMENTDATEFORMAT_STRING);
     		giveMinimumArgumentsInfo();System.exit(1);
     	}
     	
@@ -509,7 +554,7 @@ public class CommandLineArguments {
         return argumentMap.get(argName.toString());
     }
 
-    private void printeArgumentSummary() {
+	private void printeArgumentSummary() {
     	
     	System.out.println("You selected following arguments");
     	if (search) {
@@ -517,6 +562,8 @@ public class CommandLineArguments {
     		System.out.println("   Folder where backups are stored:        " + destination);
     		System.out.println("   Folder where results will be stored:    " + writesearchto);
     		System.out.println("   Searchtext:                             " + searchText);
+    		System.out.println("   startSearchDate:                        " + OtherUtilities.DateToStringExample(startSearchDate, Constants.OUTPUTDATEFORMAT_STRING));
+    		System.out.println("   endSearchDate:                          " + OtherUtilities.DateToStringExample(endSearchDate, Constants.OUTPUTDATEFORMAT_STRING));
     	} else if (backup) {
     		// BACKUP
     		if (fullBackup) {
@@ -532,7 +579,7 @@ public class CommandLineArguments {
     		// RESTORE
     		    System.out.println("   Folder where backups are stored:    " + destination);
     		    System.out.println("   Destination to restore to:          " + restoreto);
-    		    SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.backupFolderDateFormat);
+    		    SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.BACKUPFOLDERDATEFORMAT_STRING);
     			String backupfoldernameJustTheDate = dateFormat.format(restoreDate);
     		    System.out.println("   Restore date:                       " + backupfoldernameJustTheDate);
     		    System.out.println("   overwrite:                          " + (overwrite ? "Y":"N"));
@@ -705,6 +752,12 @@ public class CommandLineArguments {
             case "writesearchto":
             	return true;
             	
+            case "startsearchdate":
+            	return true;
+            	
+            case "endsearchdate":
+            	return true;
+            	
             default:
                 // Unknown argument name
                 System.out.println("Unknown argument name: " + argName);
@@ -768,7 +821,7 @@ public class CommandLineArguments {
     	System.out.println("  --logfilefolder: location of the logfile, just the folder name, it must exist.");
     	System.out.println("  --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.");
     	System.out.println("  --excludedpathlist: full paths that need to be exclude, starting from the main source folder, ie not start for instance with c:\\..");
-    	System.out.println("  --restoredate: mandatory if type arguments = R. Date and time for which restore should occur. Format " + Constants.restoreDateFormat);
+    	System.out.println("  --restoredate: mandatory if type arguments = R. Date and time for which restore should occur. Format " + Constants.ARGUMENTDATEFORMAT_STRING);
     	System.out.println("  --subfoldertorestore: The specific folder within source that needs to be restored, If the complete backup needs to be restored, then omit this argument, If a specific subfolder needs to be restored, then specify that folder here.");
     	System.out.println("  --foldernamemapping:");
     	System.out.print(  "          Sometimes SharePoint sync gives different foldernames to the main folder. Example sometimes the Documents folder is named \"XDrive Documents\", but");
@@ -785,7 +838,8 @@ public class CommandLineArguments {
     	System.out.println("                   Examples:");
     	System.out.println("                      - to search for files with 'Trident' or 'Jabra', the searchtext you specify here would be '\\b(?:Trident|Jabra)\\b'");
     	System.out.println("                      - to search for files with 'Trident' and 'Jabra', the searchtext you specify here would be '(?=.*\\bTrident\\b)(?=.*\\bJabra\\b)'");
-
+    	System.out.println("  --startsearchdate: when searching, only search in backups created after this date. Format = " + Constants.ARGUMENTDATEFORMAT_STRING + ". Default = 1 1 1970 ");
+    	System.out.println("  --endsearchdate: when searching, only search in backups created after before or at this date. Format = " + Constants.ARGUMENTDATEFORMAT_STRING + ". Default = now");
     }
     
 }

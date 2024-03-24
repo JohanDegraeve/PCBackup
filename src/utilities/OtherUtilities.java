@@ -8,13 +8,21 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import model.AFileOrAFolder;
 import model.AFolder;
 import model.CommandLineArguments;
+import model.Constants;
 
 public class OtherUtilities {
 
@@ -169,5 +177,50 @@ public class OtherUtilities {
 
 	}
 	
-	
+	/**
+	 * converts date to String
+	 * @param date
+	 * @return
+	 */
+	public static String DateToStringExample(Date date, String dateFormat) {
+		
+        // Convert Date to Instant
+        Instant instant = date.toInstant();
+
+        // Create a ZonedDateTime using the default time zone
+        ZonedDateTime zonedDateTime = instant.atZone(ZoneId.systemDefault());
+
+        // Define a format
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateFormat);
+
+        // Format the ZonedDateTime
+        return zonedDateTime.format(formatter);
+
+	}
+
+	/**
+	 * 
+	 * @param backupName eg backupName = 2024-03-19 23;06;08 (Incremental)
+	 * @return date, in this example 2024-03-19 23;06;08 local time in Date object
+	 */
+	public static Date getBackupDate(String backupName) {
+		
+		if (backupName == null) {return new Date(0);}
+		
+		SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.BACKUPFOLDERDATEFORMAT_STRING);
+		
+		String dateAsString = backupName.substring(0,18);
+		
+		try {
+			return dateFormat.parse(dateAsString);
+		} catch (ParseException e) {
+			e.printStackTrace();
+			Logger.log("");
+			System.exit(1);
+		}
+		
+		return new Date(0);
+		
+	}
+
 }

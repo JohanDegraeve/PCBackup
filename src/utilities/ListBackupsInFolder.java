@@ -37,7 +37,7 @@ public class ListBackupsInFolder {
     	String returnValue = null;
     	
     	// foldername for the date, without the "full" or "incremental" because we don't need this
-    	SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.backupFolderDateFormat);
+    	SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.BACKUPFOLDERDATEFORMAT_STRING);
 		String backupfoldernameJustTheDate = dateFormat.format(beforeDate);
     	
     	for (int i = 0; i < backupFolders.size();i++) {

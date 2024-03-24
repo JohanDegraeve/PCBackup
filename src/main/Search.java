@@ -19,6 +19,7 @@ import model.CommandLineArguments;
 import utilities.FileAndFolderUtilities;
 import utilities.ListBackupsInFolder;
 import utilities.Logger;
+import utilities.OtherUtilities;
 import utilities.WriteToFile;
 
 public class Search {
@@ -26,8 +27,6 @@ public class Search {
 
 	public static void search() {
 	
-		Date searchDate = new Date();
-		
 		CommandLineArguments commandLineArguments = CommandLineArguments.getInstance();
 		
 		/**
@@ -35,12 +34,12 @@ public class Search {
 		 */
         Path sourceFolderPath = Paths.get(commandLineArguments.destination);
         
-		// get list of all backup folders at and before searchdate
+		// get list of all backup folders at and before endSearchDate
     	// first get the latest, then get all older ones and insert the latest
     	// this is trick to reuse existing functions
         List<String> allBackups = new ArrayList<>();
         try {
-			String latestBackupFolderName = ListBackupsInFolder.getMostRecentBackup(sourceFolderPath, searchDate);
+			String latestBackupFolderName = ListBackupsInFolder.getMostRecentBackup(sourceFolderPath, commandLineArguments.endSearchDate);
 			allBackups = ListBackupsInFolder.getAllBackupFoldersAsStrings(sourceFolderPath, latestBackupFolderName);
 			allBackups.add(0, latestBackupFolderName);
         } catch (IOException e) {
@@ -52,8 +51,12 @@ public class Search {
         // will have search results after calling iterateThroughFolderOrFile 
 		Map<String, String> results = new HashMap<>();
 		
-		// iterate through all backups and search for the text
+		// iterate through all backups older than startSearchDate and search for the text
 		for (String backupFolderName: allBackups) {
+			
+			if (OtherUtilities.getBackupDate(backupFolderName).compareTo(commandLineArguments.startSearchDate) < 0) {
+				continue;
+			}
 			
 			Path pathWithJsonFile = sourceFolderPath.resolve(backupFolderName).resolve("folderlist.json");
 			Logger.log("Parsing " + pathWithJsonFile.toString());
