@@ -25,19 +25,18 @@ public class Restore {
 		/**
 		 * where to find the backup files, this is the backup folder path without the specific folder (ie without '2023-12-06 18;24;41 (Full)' or anything like that)
 		 */
-        Path sourceFolderPath = Paths.get(commandLineArguments.source);
+        Path sourceFolderPath = Paths.get(commandLineArguments.destination);
         
         /**
          * where to restore the files
          */
-        Path destinationFolderPath = Paths.get(commandLineArguments.destination);
+        Path destinationFolderPath = Paths.get(commandLineArguments.restoreto);
 
         try {
         	
 			String latestBackupFolderName = ListBackupsInFolder.getMostRecentBackup(sourceFolderPath, commandLineArguments.restoreDate);
 			
 			if (latestBackupFolderName == null) {
-                System.out.println("No backups are found that were created before " + (new SimpleDateFormat(Constants.restoreDateFormat)).format(commandLineArguments.restoreDate));
                 Logger.log("No backups are found that were created before " + (new SimpleDateFormat(Constants.restoreDateFormat)).format(commandLineArguments.restoreDate));
                 System.exit(1);
 			}
@@ -141,7 +140,7 @@ public class Restore {
 						try {
 							sourceToCopy = sourceBackupRootFolder.resolve(olderBackup).resolve(subfolder).resolve(sourceItem.getName());
 							copyFile(sourceToCopy, destination, commandLineArguments);
-							Logger.log("      and copied");
+							Logger.log("      and successfully copied to restore folder");
 						} catch (FileAlreadyExistsException e2) {
 							Logger.log("The file " + sourceToCopy.toString() + " already exists in the destination folder");
 							Logger.log("If you want to restore with overwrite, add the optional argument --overwrite=Y");

@@ -33,7 +33,7 @@ public class Search {
 		/**
 		 * where to find the backup files, this is the backup folder path without the specific folder (ie without '2023-12-06 18;24;41 (Full)' or anything like that)
 		 */
-        Path sourceFolderPath = Paths.get(commandLineArguments.source);
+        Path sourceFolderPath = Paths.get(commandLineArguments.destination);
         
 		// get list of all backup folders at and before searchdate
     	// first get the latest, then get all older ones and insert the latest
@@ -119,7 +119,7 @@ public class Search {
         }
 		
 		// get path filename to write to
-		Path pathToWriteTo = Paths.get(commandLineArguments.destination).resolve(createSearchResultFilename(Paths.get(commandLineArguments.destination)));
+		Path pathToWriteTo = Paths.get(commandLineArguments.writesearchto).resolve(createSearchResultFilename(Paths.get(commandLineArguments.writesearchto)));
 		
 		try {
 			WriteToFile.writeToFile(textToWrite, pathToWriteTo.toString());

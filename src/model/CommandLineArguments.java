@@ -70,6 +70,11 @@ public class CommandLineArguments {
         restoredate,
         
         /**
+         * in case restore is used, foldername where date should be restored to
+         */
+        restoreto,
+        
+        /**
          * The specific folder within source that needs to be restored<br>
          * If the complete backup needs to be restored, then omit this argument<br>
          * If a specific subfolder needs to be restored, then specify that folder here
@@ -105,6 +110,11 @@ public class CommandLineArguments {
         searchtext,
         
         /**
+         * folder where search results should be written
+         */
+        writesearchto,
+        
+        /**
          * for testing purposes only, add the path length while converting a full directory a AFileOrAFolder
          */
         addpathlengthforallfolders,
@@ -127,6 +137,11 @@ public class CommandLineArguments {
      * Each time we create a new backup, a subfolder will be created in that folder 
      */
     public String destination;
+
+    /**
+     * in case restore is used, foldername where date should be restored to
+     */
+    public String restoreto;
     
     /**
      * If true, full backup, if false, incremental backup
@@ -182,13 +197,30 @@ public class CommandLineArguments {
      */
     public boolean overwrite = false;
     
-    public String searchText = null;
+    /**
+     * folder to store search results
+     */
+    public String writesearchto = null;
    
+    /**
+     * regex pattern to use in search
+     */
 	public Pattern searchTextPattern = null;
 	
+	/**
+	 * for testing only
+	 */
 	public boolean addpathlengthforallfolders = false;
 	
+	/**
+	 * for testing only
+	 */
 	public boolean addpathlengthforfolderswithnewormodifiedcontent = false;
+
+    /**
+     * text to search for, uses regex
+     */
+    private String searchText = null;
 
 	/**
 	 * valid argument names, build based on the Enum ArgumentName
@@ -270,6 +302,46 @@ public class CommandLineArguments {
         	
     	}
     	
+    	restoreto = getArgumentValue(ArgumentName.restoreto);
+    	if (restoreto == null && backup == false && search == false) {// it's not backup, it's not search, so it's restore, but restoreto is not given
+    		System.out.println("restoreto argument is missing, you must specify the restoreto folder name if you want to restore data");
+    		giveMinimumArgumentsInfo();System.exit(1);
+    	} else if (restoreto != null ){
+        	// check if restoreto folder exists
+        	Path folderPath = Paths.get(restoreto);
+        	if (!(Files.exists(folderPath))) {
+        		System.out.println("folder " + restoreto + " does not exist. Create it first or check the argument 'restoreto'");
+        		giveMinimumArgumentsInfo();System.exit(1);
+        	}
+        	
+        	// check also that folderPath is a directory
+        	if (!Files.isDirectory(folderPath)){
+        		System.out.println(restoreto + " seems to be a file, not a folder. Check the argument 'restoreto'");
+        		giveMinimumArgumentsInfo();System.exit(1);
+        	}
+        	
+    	}
+    	
+    	writesearchto = getArgumentValue(ArgumentName.writesearchto);
+    	if (writesearchto == null && search == true) {// it's search, so but writesearchto is not given
+    		System.out.println("writesearchto argument is missing, you must specify the writesearchto folder name if you want to search");
+    		giveMinimumArgumentsInfo();System.exit(1);
+    	} else if (writesearchto != null ){
+        	// check if writesearchto folder exists
+        	Path folderPath = Paths.get(writesearchto);
+        	if (!(Files.exists(folderPath))) {
+        		System.out.println("folder " + writesearchto + " does not exist. Create it first or check the argument 'writesearchto'");
+        		giveMinimumArgumentsInfo();System.exit(1);
+        	}
+        	
+        	// check also that folderPath is a directory
+        	if (!Files.isDirectory(folderPath)){
+        		System.out.println(writesearchto + " seems to be a file, not a folder. Check the argument 'writesearchto'");
+        		giveMinimumArgumentsInfo();System.exit(1);
+        	}
+        	
+    	}
+    	
     	logfilefolder = getArgumentValue(ArgumentName.logfilefolder);
     	// if logfilefolderfile is present, then check if it's a directory
     	if (logfilefolder != null) {
@@ -332,7 +404,7 @@ public class CommandLineArguments {
     	
     	String overwriteAsString = getArgumentValue(ArgumentName.overwrite); 
     	if (overwriteAsString != null) {
-    		if (overwriteAsString.equalsIgnoreCase("y")) {
+    		if (overwriteAsString.equalsIgnoreCase("true")) {
     			overwrite = true;
     		}
     	}
@@ -441,60 +513,61 @@ public class CommandLineArguments {
     	
     	System.out.println("You selected following arguments");
     	if (search) {
-    		System.out.println("   Type :                              search text through backups");
-    		System.out.println("   Folder where backups are stored :   " + source);
-    		System.out.println("   Searchtext:                         " + searchText);
+    		System.out.println("   Type:                                   search text through backups");
+    		System.out.println("   Folder where backups are stored:        " + destination);
+    		System.out.println("   Folder where results will be stored:    " + writesearchto);
+    		System.out.println("   Searchtext:                             " + searchText);
     	} else if (backup) {
     		// BACKUP
     		if (fullBackup) {
-    			System.out.println("   Type :                              full backup");	
+    			System.out.println("   Type:                               full backup");	
     		} else {
-    			System.out.println("   Type :                              incremental backup");
+    			System.out.println("   Type:                               incremental backup");
     		}
     		
-    		    System.out.println("   Folder to backup :                  " + source);
-    		    System.out.println("   Destination to backup :             " + destination);
+    		    System.out.println("   Folder to backup:                   " + source);
+    		    System.out.println("   Destination to backup to:           " + destination);
     		
     	} else {
     		// RESTORE
-    		    System.out.println("   Folder where backups are stored :   " + source);
-    		    System.out.println("   Destination to restore to :         " + destination);
+    		    System.out.println("   Folder where backups are stored:    " + destination);
+    		    System.out.println("   Destination to restore to:          " + restoreto);
     		    SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.backupFolderDateFormat);
     			String backupfoldernameJustTheDate = dateFormat.format(restoreDate);
-    		    System.out.println("   Restore date :                      " + backupfoldernameJustTheDate);
-    		    System.out.println("   overwrite    :                      " + (overwrite ? "Y":"N"));
+    		    System.out.println("   Restore date:                       " + backupfoldernameJustTheDate);
+    		    System.out.println("   overwrite:                          " + (overwrite ? "Y":"N"));
     		    
     	}
     
     	if (logfilefolder != null) {
-    		    System.out.println("   Log file :                          " + logfilefolder);
+    		    System.out.println("   Log file:                           " + logfilefolder);
     	} else {
-    		    System.out.println("   Log file :                          none");
+    		    System.out.println("   Log file:                           none");
     	}
     	
     	if (!search) {
         	if (excludedfilelist != null) {
-        		System.out.println("   excludedfilelist :                  " + excludedfilelist);
+        		System.out.println("   excludedfilelist:                   " + excludedfilelist);
         	} else {
-        		System.out.println("   excludedfilelist :                          none");
+        		System.out.println("   excludedfilelist:                           none");
         	}
         	
         	if (excludedpathlist != null) {
-        		System.out.println("   excludedpathlist :                  " + excludedpathlist);
+        		System.out.println("   excludedpathlist:                   " + excludedpathlist);
         	} else {
-        		System.out.println("   excludedpathlist :                  none");
+        		System.out.println("   excludedpathlist:                   none");
         	}
         	
         	if (subfolderToRestore.length() > 0) {
-        		System.out.println("   subfoldertorestore :                " + subfolderToRestore);
+        		System.out.println("   subfoldertorestore:                 " + subfolderToRestore);
         	} else {
-        		System.out.println("   subfoldertorestore :                none, which means the full backup will be restored");
+        		System.out.println("   subfoldertorestore:                 none, which means the full backup will be restored");
         	}
         	
         	if (foldernamemapping != null) {
-        		System.out.println("   foldernamemapping :                          " + foldernamemapping);
+        		System.out.println("   foldernamemapping:                           " + foldernamemapping);
         	} else {
-        		System.out.println("   foldernamemapping :                 none");
+        		System.out.println("   foldernamemapping:                  none");
         	}
     	}
     	
@@ -626,6 +699,12 @@ public class CommandLineArguments {
             case "addpathlengthforfolderswithnewormodifiedcontent":
             	return true;
             	
+            case "restoreto":
+            	return true;
+            	
+            case "writesearchto":
+            	return true;
+            	
             default:
                 // Unknown argument name
                 System.out.println("Unknown argument name: " + argName);
@@ -674,18 +753,18 @@ public class CommandLineArguments {
     private static void giveMinimumArgumentsInfo() {
     	System.out.println("Mandatory arguments:");
     	System.out.println("  --type: F for Full backup, I for incremental backup, R for restore, S for searching in backups.");
-    	System.out.println("  --source:");
-    	System.out.println("            for BACKUP : the folder that you want to backup, the contents will be backedup");
-    	System.out.println("            for RESTORE: the folder where your backup is stored");
-    	System.out.println("            for SEARCH: the folder where your backup is stored");
-    	System.out.println("  --destination:");
+    	System.out.println("  --source:  the folder that you want to backup, the contents will be backed up");
+    	System.out.println("            Not used for RESTORE and SEARCH");
+    	System.out.println("  --destination: folder where you want to backup to");
     	System.out.println("            for BACKUP : folder where you want to backup to");
-    	System.out.println("            for RESTORE: folder to where you want to restore (better not to take the same as the original source, maybe)");
-    	System.out.println("            for SEARCH: folder where the file with searchresults will be written to. The folder must exist.");
-    	System.out.println("                the file with the search results will be named searchresults.csv. If that file already exists, then it will be named for intance searchresults (1).txt");
+    	System.out.println("            for RESTORE: the folder where your backup is stored and from where restore will happen, ie the folder where you previously backed up to");
+    	System.out.println("            for SEARCH:  the folder where your backup is stored and where the search will happen, ie the folder where you previously backed up to");
     	System.out.println("");
     	System.out.println("Optional arguments:");
-    	System.out.println("  --overwrite: only for restore. If value = y then files that already exist in the destination will be overwritten. Default n (no)");
+    	System.out.println("  --restoreto: only for restore. This is the foldername where you want to restore to");
+    	System.out.println("  --writesearchto: foldername where searchresults will be written to");
+    	System.out.println("            the file with the search results will be named searchresults.csv. If that file already exists, then it will be named for intance searchresults (1).txt");
+    	System.out.println("  --overwrite: only for restore. If value = true then files that already exist in the destination will be overwritten. Default n (no)");
     	System.out.println("  --logfilefolder: location of the logfile, just the folder name, it must exist.");
     	System.out.println("  --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.");
     	System.out.println("  --excludedpathlist: full paths that need to be exclude, starting from the main source folder, ie not start for instance with c:\\..");

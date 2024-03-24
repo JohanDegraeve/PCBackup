@@ -148,6 +148,7 @@ public class Backup {
         if (commandLineArguments.fullBackup) {
         	Logger.log("Starting full backup");
             CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder, commandLineArguments);
+            Logger.log("Backup finished");
             System.out.println("Backup finished");
         } else {
         	
@@ -180,6 +181,7 @@ public class Backup {
     			System.exit(1);
             }
 
+    		Logger.log("Backup finished");
     		System.out.println("Backup finished");
 
         }

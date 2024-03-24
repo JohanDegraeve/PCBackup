@@ -299,7 +299,7 @@ public class FileAndFolderUtilities {
             }
 
             // Process items in dest that don't exist in source
-            // but only for not level 1 folders, meaning once a backup is taken of a sharepoint library, it will not be removed anymore
+            // but only for not level 1 folders, meaning once a backup is taken of a sharepoint library, it will not be removed anymore in the backup
             if (level > 1) {
                 if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
                 	Logger.log("   Some files and/or folders in " + OtherUtilities.concatenateStrings(subfolders) + " that were still in previous backup are not found anymore in the source");
