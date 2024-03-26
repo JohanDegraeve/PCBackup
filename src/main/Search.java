@@ -76,7 +76,7 @@ public class Search {
 		textToWrite += "sep=,\n";
 
 		// we have the results, create text to write to file
-		textToWrite += "name of matching item" + seperator + "type" + seperator + "path to backup folder" + seperator + "folder name within backup\n";
+		textToWrite += "name of matching item" + seperator + "type" + seperator + "backupfolder where file was found for the last time" + seperator + "path to backup folder where latest version is stored" + seperator + "folder name within backup\n";
 		for (Map.Entry<String, String> entry : results.entrySet()) {
             
 			// first determine if it's a file or a folder by checking and removing the last part of the key
@@ -91,8 +91,21 @@ public class Search {
 				thePath = entry.getKey().substring(0, entry.getKey().length() - 6);
 			}
 
+			// get the value
+			String value = entry.getValue();
+			
+			// strip off the backupfoldername, this is actually the first backupfoldername where we found a specific value (a full path), starting from the youngest, so it's
+			//    actually the latest backupfolder where the value (the full path) was found. This is interesting info for the user
+			int delimiter = value.indexOf("|||");
+			int startindex = value.length() - value.indexOf("|||");
+			int endindex = value.length();
+			String lastBackupFolderNameString = value.substring(value.indexOf("|||") + 3, value.length());
+			
+			// and now the path
+			String backupFolderWithLatestVersionOfTheFileOrFolder = value.substring(0, value.length() - lastBackupFolderNameString.length() - 3);
+			
 			// full backupfolder example /Users/johandegraeve/Downloads/dest/2024-03-10 17;53;19 (Incremental)
-			Path backupFolder = sourceFolderPath.resolve(entry.getValue());
+			Path backupFolder = sourceFolderPath.resolve(backupFolderWithLatestVersionOfTheFileOrFolder);
 			
 			// example submap1/submap12/submap121/Jabra Speak 510 user manual_EN_English_RevL.pdf
 			Path subFolderWithItem = Paths.get(thePath);
@@ -102,6 +115,9 @@ public class Search {
 			
 			// write if it's a file or a folder
 			textToWrite += (itsafile ? "file":"folder") + seperator; 
+			
+			// add lastBackupFolderNameString
+			textToWrite += lastBackupFolderNameString + seperator;
 					
 			// add path to backup folder
 			textToWrite += backupFolder.toString()  + seperator;
@@ -167,9 +183,13 @@ public class Search {
 				finalKeyToAdd += "-AFOLDER";
 			}
 			
+			// to the value we will add at the end the backupfoldername, this will be cut off again before writing to csv
+			// we add three pipe delimiters
+			String valueToAdd = aFileOrAFolder.getPathToBackup() + "|||" + backupfoldername;
+			
 			// if not yet in results, then add it, with the backup folername where the latest version is stored
 			if (!results.containsKey(finalKeyToAdd)) {
-				results.put(finalKeyToAdd, aFileOrAFolder.getPathToBackup());
+				results.put(finalKeyToAdd, valueToAdd);
 			}
 			
 			
