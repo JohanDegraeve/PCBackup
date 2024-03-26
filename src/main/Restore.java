@@ -143,7 +143,7 @@ public class Restore {
 							Logger.log("      and successfully copied to restore folder");
 						} catch (FileAlreadyExistsException e2) {
 							Logger.log("The file " + sourceToCopy.toString() + " already exists in the destination folder");
-							Logger.log("If you want to restore with overwrite, add the optional argument --overwrite=Y");
+							Logger.log("If you want to restore with overwrite, add the optional argument --overwrite=true");
 							Logger.log("Restore interrupted");
 				            System.exit(1);
 						} catch (IOException e1) {
@@ -153,7 +153,7 @@ public class Restore {
 					}
 				} catch (FileAlreadyExistsException e) {
 					Logger.log("The file " + sourceToCopy.toString() + " already exists in the destination folder");
-					Logger.log("If you want to restore with overwrite, add the optional argument --overwrite=Y");
+					Logger.log("If you want to restore with overwrite, add the optional argument --overwrite=true");
 					Logger.log("Restore interrupted");
 		            System.exit(1);
 				} catch (IOException e) {
