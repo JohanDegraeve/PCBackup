@@ -12,6 +12,8 @@ public class BackupMainClass {
 // --destination=/Users/johandegraeve/Downloads/backup --restoreto=/Users/johandegraeve/Downloads/restore --excludedfilelist="/Users/johandegraeve/OneDrive/Eclipse projects/PCBackup/excludedfiles.txt" --type=R --restoredate=2024-02-20-00-00-00
 	
     public static void main(String[] args) {
+    	
+    	System.out.println("version 1.2.1");
         
     	CommandLineArguments commandLineArguments = CommandLineArguments.getInstance(args);
 
