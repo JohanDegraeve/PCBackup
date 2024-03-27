@@ -32,26 +32,38 @@ Java app to Backup and Restore, full and incremental.
 
 The app is launched with a command line interface.
 
-*Mandatory arguments:*
-  - --type: F for Full backup, I for incremental backup, R for restore.
-  - --source:
-    - for BACKUP : the folder that you want to backup, the contents will be backedup
-    - for RESTORE: the folder where your backup is stored
-  - --destination:
-    - for BACKUP : folder where you want to backup to
-    - for RESTORE: folder to where you want to restore (better not to take the same as the original source, maybe)
+*Mandatory arguments*:
+  * --type: F for Full backup, I for incremental backup, R for restore, S for searching in backups.
+  * --source:  the folder that you want to backup, the contents will be backed up
+            Not used for RESTORE and SEARCH
+  * --destination: folder where you want to backup to
+            for BACKUP : folder where you want to backup to
+            for RESTORE: the folder where your backup is stored and from where restore will happen, ie the folder where you previously backed up to
+            for SEARCH:  the folder where your backup is stored and where the search will happen, ie the folder where you previously backed up to
 
-*Optional arguments:*
-  - --logfilefolder: location of the logfile, just the folder name, it must exist.
-  - --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.
-  - --restoredate: mandatory if type arguments = R. Date and time for which restore should occur. Format yyyy-MM-dd-HH-mm-ss
-  - --subfoldertorestore: The specific folder within source that needs to be restored, If the complete backup needs to be restored, then omit this argument, If a specific subfolder needs to be restored, then specify that folder here.
+*Optional arguments*:
 
-
-Example Incremental backup
-
-java -jar --destination=/Users/johandegraeve/Downloads/backup --source=/Users/johandegraeve/Downloads/temp/test --excludedfilelist="/Users/johandegraeve/OneDrive/Eclipse projects/PCBackup/excludedfiles.txt" --type=I
-
-Example Restore
-
---source=/Users/johandegraeve/Downloads/backup --destination=/Users/johandegraeve/Downloads/temp/restore --excludedfilelist="/Users/johandegraeve/OneDrive/Eclipse projects/PCBackup/excludedfiles.txt" --type=R --restoredate=2024-02-20-00-00-00
+  * --restoreto: only for restore. This is the foldername where you want to restore to  
+  * --writesearchto: foldername where searchresults will be written to
+            the file with the search results will be named searchresults.csv. If that file already exists, then it will be named for intance searchresults (1).txt
+  * --overwrite: only for restore. If value = true then files that already exist in the destination will be overwritten. Default n (no)
+  * --logfilefolder: location of the logfile, just the folder name, it must exist.
+  * --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.
+  * --excludedpathlist: full paths that need to be exclude, starting from the main source folder, ie not start for instance with c:\..
+  * --restoredate: mandatory if type arguments = R. Date and time for which restore should occur. Format yyyy-MM-dd-HH-mm-ss
+  * --subfoldertorestore: The specific folder within source that needs to be restored, If the complete backup needs to be restored, then omit this argument, If a specific subfolder needs to be restored, then specify that folder here.
+  * --foldernamemapping:<br>
+        Sometimes SharePoint sync gives different foldernames to the main folder. Example sometimes the Documents folder is named "XDrive Documents", but on another PC it may be named "XDrive Documenten"<br>
+          The app allows to do mapping of foldernames. This is only applicable to the initial folder, not the subfolders. It's a list of mappings. Example line:<br>
+              XDrive Documents=XDrive Documenten<br>
+              When doing a backup:<br>
+              When a folder in the source is named "XDrive Documents", then the file folderlist.json will be named "XDrive Documenten" and also in the backup there will be a folder with name "XDrive Documenten"<br>
+              So when we reuse a hard disk with backups taken on another PC, and the folder on that disk is named "XDrive Documenten", while on the new PC, where we do the backup, it's named "XDrive Documents", then we need to add the line 'XDrive Documents=XDrive <br>Documenten' in the file that is specified here.
+              Then if we do a backup on that new PC, the app sees the folder XDrive Documents, then the file folderlist.json will contain XDrive Documenten.
+  * --searchtext: the text to search for, mandatory in case type = S<br>
+                   the searchtext is handled as a regular expression.<br>
+                   Examples:<br>
+                      - to search for files with 'Trident' or 'Jabra', the searchtext you specify here would be '\b(?:Trident|Jabra)\b'<br>
+                      - to search for files with 'Trident' and 'Jabra', the searchtext you specify here would be '(?=.*\bTrident\b)(?=.*\bJabra\b)'<br>
+  * --startsearchdate: when searching, only search in backups created after this date. Format = yyyy-MM-dd-HH-mm-ss. Default = 1 1 1970 
+  * --endsearchdate: when searching, only search in backups created after before or at this date. Format = yyyy-MM-dd-HH-mm-ss. Default = now
