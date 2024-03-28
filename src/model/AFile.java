@@ -18,7 +18,6 @@ public class AFile extends AFileOrAFolder {
 
 		super(name, pathToBackup);
 		
-		if (ts == 0L) {throw new IllegalArgumentException("ts cannot be null");}
 		if (pathToBackup == null) {throw new IllegalArgumentException("pathToIncrementalBackup cannot be null");}
 		
 		this.ts = ts;
