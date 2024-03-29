@@ -9,6 +9,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -177,25 +178,33 @@ public class FileAndFolderUtilities {
          * @param subfolders is an arraylist of strings, representing the subfolders. We need to pass them through as we go recursively through the function, so we can create the full path
          * @return
          */
-        public static AFileOrAFolder createAFileOrAFolderWithFullPath(AFileOrAFolder aFileOrAFolder, ArrayList<String> subfolders) {
+        public static AFileOrAFolder createAFileOrAFolderWithFullPath(AFileOrAFolder aFileOrAFolder, ArrayList<String> subfolders, AFolder parentFolder) {
         	
         	if (aFileOrAFolder instanceof AFile) {
         		
         		AFile aFileOrAFolderAsFile = (AFile)aFileOrAFolder;
         		
-        		AFileWithLastModified returnValueAFile = new AFileWithLastModified(OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, aFileOrAFolderAsFile.getName())), aFileOrAFolderAsFile.getPathToBackup());
+        		AFileWithLastModified returnValueAFile = new AFileWithLastModified(aFileOrAFolder.getName(), aFileOrAFolderAsFile.getPathToBackup());
         		returnValueAFile.setlastmodified(OtherUtilities.dateToString(new Date(aFileOrAFolderAsFile.getts()), Constants.OUTPUTDATEFORMAT_STRING));
+        		
+        		if (parentFolder != null) {
+        			Pattern pattern = Pattern.compile("\\\\\\\\");
+        			String newNameString = OtherUtilities.concatenateStrings(subfolders);
+        			pattern.matcher(newNameString).replaceAll("\\");
+        			parentFolder.setName(newNameString);
+        		}
+        		
         		return returnValueAFile;   
         		
         	} else {
         		
         		AFolder afileAFolderAsFolder = (AFolder)aFileOrAFolder;
         		
-        		AFolder returnValueAFolder = new AFolder(OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, afileAFolderAsFolder.getName())), afileAFolderAsFolder.getPathToBackup());
+        		AFolder returnValueAFolder = new AFolder(aFileOrAFolder.getName(), afileAFolderAsFolder.getPathToBackup());
         		
         		for (AFileOrAFolder aFileOrAFolder1: ((AFolder)aFileOrAFolder).getFileOrFolderList()) {
         			
-        			returnValueAFolder.getFileOrFolderList().add(createAFileOrAFolderWithFullPath(aFileOrAFolder1, OtherUtilities.addString(subfolders, afileAFolderAsFolder.getName())));
+        			returnValueAFolder.getFileOrFolderList().add(createAFileOrAFolderWithFullPath(aFileOrAFolder1, OtherUtilities.addString(subfolders, afileAFolderAsFolder.getName()), returnValueAFolder));
         			
         		}
         		

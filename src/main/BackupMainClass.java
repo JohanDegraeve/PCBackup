@@ -13,7 +13,7 @@ public class BackupMainClass {
 	
     public static void main(String[] args) {
     	
-    	System.out.println("version 1.2.1");
+    	System.out.println("version 1.2.3");
         
     	CommandLineArguments commandLineArguments = CommandLineArguments.getInstance(args);
 
