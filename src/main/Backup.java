@@ -172,6 +172,9 @@ public class Backup {
             
     		// store folderlist.json on disk
     		try {
+    			
+    			Logger.log("Writing folderlist.json to " + destinationFolderPathSubFolder.toString());
+    			
         		// write the json file to the destination folder
         		WriteToFile.writeToFile((new ObjectMapper()).writeValueAsString(listOfFilesAndFoldersInPreviousBackupFolder), destinationFolderPathSubFolder.toString() + File.separator + "folderlist.json");
             	
@@ -179,9 +182,22 @@ public class Backup {
             	Logger.log("Failed to write json file folderlist.json to  " + destinationFolderPath.toString());
     			System.exit(1);
             }
-
+    		
+    		// store folderlist-withfullpaths.json. This json file has the same contents, but the 'name' is the full path of a file or folder. Makes it easier to find it in the backup folder.
+    		try {
+    			
+    			Logger.log("Writing folderlist-withfullpaths.json to " + destinationFolderPathSubFolder.toString());
+    			
+        		// write the json file to the destination folder
+        		WriteToFile.writeToFile((new ObjectMapper()).writeValueAsString(FileAndFolderUtilities.createAFileOrAFolderWithFullPath(listOfFilesAndFoldersInPreviousBackupFolder, new ArrayList<>())), destinationFolderPathSubFolder.toString() + File.separator + "folderlist-withfullpaths.json");
+            	
+            } catch (IOException e) {
+            	Logger.log("Failed to write json file folderlist-withfullpaths.json to  " + destinationFolderPath.toString());
+    			System.exit(1);
+            }
+    		
     		Logger.log("Backup finished");
-    		System.out.println("Backup finished");
+
 
         }
         

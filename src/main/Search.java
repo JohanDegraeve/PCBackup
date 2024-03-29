@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,9 +95,6 @@ public class Search {
 			
 			// strip off the backupfoldername, this is actually the first backupfoldername where we found a specific value (a full path), starting from the youngest, so it's
 			//    actually the latest backupfolder where the value (the full path) was found. This is interesting info for the user
-			int delimiter = value.indexOf("|||");
-			int startindex = value.length() - value.indexOf("|||");
-			int endindex = value.length();
 			String lastBackupFolderNameString = value.substring(value.indexOf("|||") + 3, value.length());
 			
 			// and now the path

@@ -562,8 +562,8 @@ public class CommandLineArguments {
     		System.out.println("   Folder where backups are stored:        " + destination);
     		System.out.println("   Folder where results will be stored:    " + writesearchto);
     		System.out.println("   Searchtext:                             " + searchText);
-    		System.out.println("   startSearchDate:                        " + OtherUtilities.DateToStringExample(startSearchDate, Constants.OUTPUTDATEFORMAT_STRING));
-    		System.out.println("   endSearchDate:                          " + OtherUtilities.DateToStringExample(endSearchDate, Constants.OUTPUTDATEFORMAT_STRING));
+    		System.out.println("   startSearchDate:                        " + OtherUtilities.dateToString(startSearchDate, Constants.OUTPUTDATEFORMAT_STRING));
+    		System.out.println("   endSearchDate:                          " + OtherUtilities.dateToString(endSearchDate, Constants.OUTPUTDATEFORMAT_STRING));
     	} else if (backup) {
     		// BACKUP
     		if (fullBackup) {

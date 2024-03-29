@@ -1,5 +1,6 @@
 package model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -13,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(value = AFile.class, name = "afile"),
     @JsonSubTypes.Type(value = AFolder.class, name = "afolder")
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class AFileOrAFolder {
 
 	/**

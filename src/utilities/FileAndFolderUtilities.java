@@ -7,13 +7,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.AFileOrAFolder;
+import model.AFileWithLastModified;
 import model.AFolder;
 import model.CommandLineArguments;
+import model.Constants;
 import model.AFile;
 
 /**
@@ -166,7 +169,42 @@ public class FileAndFolderUtilities {
                     .orElse(null);
         }
 
-
+        /**
+         * creates an instance of AFileOrAFolder but the 'name' will have the full path where the file or folder is found<br>
+         * &nbsp&nbsp name without the backup folder name , because backup folder name is already in the attribute pathToBackup<br>
+         * also adds lastmodified in human readable, local format
+         * @param aFileOrAFolder
+         * @param subfolders is an arraylist of strings, representing the subfolders. We need to pass them through as we go recursively through the function, so we can create the full path
+         * @return
+         */
+        public static AFileOrAFolder createAFileOrAFolderWithFullPath(AFileOrAFolder aFileOrAFolder, ArrayList<String> subfolders) {
+        	
+        	if (aFileOrAFolder instanceof AFile) {
+        		
+        		AFile aFileOrAFolderAsFile = (AFile)aFileOrAFolder;
+        		
+        		AFileWithLastModified returnValueAFile = new AFileWithLastModified(OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, aFileOrAFolderAsFile.getName())), aFileOrAFolderAsFile.getPathToBackup());
+        		returnValueAFile.setlastmodified(OtherUtilities.dateToString(new Date(aFileOrAFolderAsFile.getts()), Constants.OUTPUTDATEFORMAT_STRING));
+        		return returnValueAFile;   
+        		
+        	} else {
+        		
+        		AFolder afileAFolderAsFolder = (AFolder)aFileOrAFolder;
+        		
+        		AFolder returnValueAFolder = new AFolder(OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, afileAFolderAsFolder.getName())), afileAFolderAsFolder.getPathToBackup());
+        		
+        		for (AFileOrAFolder aFileOrAFolder1: ((AFolder)aFileOrAFolder).getFileOrFolderList()) {
+        			
+        			returnValueAFolder.getFileOrFolderList().add(createAFileOrAFolderWithFullPath(aFileOrAFolder1, OtherUtilities.addString(subfolders, afileAFolderAsFolder.getName())));
+        			
+        		}
+        		
+        		return returnValueAFolder;
+        		
+        	}
+        	
+        }
+        
         private static void compareAndUpdateFiles(AFile sourceFile, AFile destFile, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName, CommandLineArguments commandLineArguments) {
             // Compare and update files based on last modified timestamp
             if (sourceFile.getts() > destFile.getts()) {

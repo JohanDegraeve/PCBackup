@@ -44,6 +44,11 @@ public class OtherUtilities {
 		
 	}
 	
+	/**
+	 * concatenates subfolders with a / or \ between the names, depending on the platform
+	 * @param source array of subfolders, eg submap1, submap2
+	 * @return in example submap1/submap2, seperator is platform dependent
+	 */
 	public static String concatenateStrings(ArrayList<String> source) {
 		String returnValue = "";
 		for (String sourceItem : source) {
@@ -178,11 +183,11 @@ public class OtherUtilities {
 	}
 	
 	/**
-	 * converts date to String
+	 * converts date to locale String
 	 * @param date
 	 * @return
 	 */
-	public static String DateToStringExample(Date date, String dateFormat) {
+	public static String dateToString(Date date, String dateFormat) {
 		
         // Convert Date to Instant
         Instant instant = date.toInstant();
