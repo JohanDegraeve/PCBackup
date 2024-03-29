@@ -178,7 +178,7 @@ public class FileAndFolderUtilities {
          * @param subfolders is an arraylist of strings, representing the subfolders. We need to pass them through as we go recursively through the function, so we can create the full path
          * @return
          */
-        public static AFileOrAFolder createAFileOrAFolderWithFullPath(AFileOrAFolder aFileOrAFolder, ArrayList<String> subfolders, AFolder parentFolder) {
+        public static AFileOrAFolder createAFileOrAFolderWithFullPath(AFileOrAFolder aFileOrAFolder, ArrayList<String> subfolders, AFolderWithFullPath parentFolder) {
         	
         	if (aFileOrAFolder instanceof AFile) {
         		
@@ -190,6 +190,7 @@ public class FileAndFolderUtilities {
         		if (parentFolder != null) {
         			
         			parentFolder.setPath(OtherUtilities.concatenateStrings(subfolders));
+        			
         		}
         		
         		return returnValueAFile;   
@@ -198,7 +199,7 @@ public class FileAndFolderUtilities {
         		
         		AFolder afileAFolderAsFolder = (AFolder)aFileOrAFolder;
         		
-        		AFolder returnValueAFolder = new AFolderWithFullPath(aFileOrAFolder.getName(), afileAFolderAsFolder.getPathToBackup());
+        		AFolderWithFullPath returnValueAFolder = new AFolderWithFullPath(aFileOrAFolder.getName(), afileAFolderAsFolder.getPathToBackup());
         		
         				//new AFolder(aFileOrAFolder.getName(), afileAFolderAsFolder.getPathToBackup());
         		

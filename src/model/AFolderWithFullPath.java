@@ -21,7 +21,7 @@ public class AFolderWithFullPath extends AFolder {
 	/**
 	 * @return the path
 	 */
-	@JsonValue
+	//@JsonValue
 	public String getPath() {
 		return path;
 	}
