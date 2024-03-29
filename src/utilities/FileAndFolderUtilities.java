@@ -9,13 +9,13 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.AFileOrAFolder;
 import model.AFileWithLastModified;
 import model.AFolder;
+import model.AFolderWithFullPath;
 import model.CommandLineArguments;
 import model.Constants;
 import model.AFile;
@@ -188,10 +188,8 @@ public class FileAndFolderUtilities {
         		returnValueAFile.setlastmodified(OtherUtilities.dateToString(new Date(aFileOrAFolderAsFile.getts()), Constants.OUTPUTDATEFORMAT_STRING));
         		
         		if (parentFolder != null) {
-        			Pattern pattern = Pattern.compile("\\\\\\\\");
-        			String newNameString = OtherUtilities.concatenateStrings(subfolders);
-        			pattern.matcher(newNameString).replaceAll("\\");
-        			parentFolder.setName(newNameString);
+        			
+        			parentFolder.setPath(OtherUtilities.concatenateStrings(subfolders));
         		}
         		
         		return returnValueAFile;   
@@ -200,7 +198,9 @@ public class FileAndFolderUtilities {
         		
         		AFolder afileAFolderAsFolder = (AFolder)aFileOrAFolder;
         		
-        		AFolder returnValueAFolder = new AFolder(aFileOrAFolder.getName(), afileAFolderAsFolder.getPathToBackup());
+        		AFolder returnValueAFolder = new AFolderWithFullPath(aFileOrAFolder.getName(), afileAFolderAsFolder.getPathToBackup());
+        		
+        				//new AFolder(aFileOrAFolder.getName(), afileAFolderAsFolder.getPathToBackup());
         		
         		for (AFileOrAFolder aFileOrAFolder1: ((AFolder)aFileOrAFolder).getFileOrFolderList()) {
         			
