@@ -1,36 +1,29 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonValue;
 
-public class AFolderWithFullPath extends AFolder {
+public class AFolderWithFullPath extends AFileOrAFolderForFullPath {
 
-	public String path;
-	
-	@JsonIgnore
-	private String name;
+	/**
+	 * the list of instance of AFileOrAFolder
+	 */
+	private List<AFileOrAFolderForFullPath> fileOrFolderList;
 
-	public AFolderWithFullPath(String name, String pathToBackup) {
+	public List<AFileOrAFolderForFullPath> getFileOrFolderList() {
+		return fileOrFolderList;
+	}
+
+	public void setFileOrFolderList(List<AFileOrAFolderForFullPath> fileOrFolderList) {
+		this.fileOrFolderList = fileOrFolderList;
+	}
+
+	public AFolderWithFullPath(String path, String pathToBackup) {
 		
-		super(name, pathToBackup);
-        
+		super(path, pathToBackup);
+		this.fileOrFolderList = new ArrayList<>();
 	}
 
-	/**
-	 * @return the path
-	 */
-	//@JsonValue
-	public String getPath() {
-		return path;
-	}
-
-	/**
-	 * @param path the path to set
-	 */
-	public void setPath(String path) {
-		this.path = path;
-	}
-	
 }

@@ -13,6 +13,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.AFileOrAFolder;
+import model.AFileOrAFolderForFullPath;
 import model.AFileWithLastModified;
 import model.AFolder;
 import model.AFolderWithFullPath;
@@ -170,22 +171,14 @@ public class FileAndFolderUtilities {
                     .orElse(null);
         }
 
-        /**
-         * creates an instance of AFileOrAFolder but the 'name' will have the full path where the file or folder is found<br>
-         * &nbsp&nbsp name without the backup folder name , because backup folder name is already in the attribute pathToBackup<br>
-         * also adds lastmodified in human readable, local format
-         * @param aFileOrAFolder
-         * @param subfolders is an arraylist of strings, representing the subfolders. We need to pass them through as we go recursively through the function, so we can create the full path
-         * @return
-         */
-        public static AFileOrAFolder createAFileOrAFolderWithFullPath(AFileOrAFolder aFileOrAFolder, ArrayList<String> subfolders, AFolderWithFullPath parentFolder) {
+        public static AFileOrAFolderForFullPath createAFileOrAFolderWithFullPath(AFileOrAFolder aFileOrAFolder, ArrayList<String> subfolders, AFolderWithFullPath parentFolder) {
         	
         	if (aFileOrAFolder instanceof AFile) {
         		
         		AFile aFileOrAFolderAsFile = (AFile)aFileOrAFolder;
         		
         		AFileWithLastModified returnValueAFile = new AFileWithLastModified(aFileOrAFolder.getName(), aFileOrAFolderAsFile.getPathToBackup());
-        		returnValueAFile.setlastmodified(OtherUtilities.dateToString(new Date(aFileOrAFolderAsFile.getts()), Constants.OUTPUTDATEFORMAT_STRING));
+        		returnValueAFile.setts(OtherUtilities.dateToString(new Date(aFileOrAFolderAsFile.getts()), Constants.OUTPUTDATEFORMAT_STRING));
         		
         		if (parentFolder != null) {
         			
@@ -199,9 +192,9 @@ public class FileAndFolderUtilities {
         		
         		AFolder afileAFolderAsFolder = (AFolder)aFileOrAFolder;
         		
-        		AFolderWithFullPath returnValueAFolder = new AFolderWithFullPath(aFileOrAFolder.getName(), afileAFolderAsFolder.getPathToBackup());
+        		// for folders we don't need the backup folder, just the subfoldername
+        		AFolderWithFullPath returnValueAFolder = new AFolderWithFullPath(aFileOrAFolder.getName(), "");
         		
-        				//new AFolder(aFileOrAFolder.getName(), afileAFolderAsFolder.getPathToBackup());
         		
         		for (AFileOrAFolder aFileOrAFolder1: ((AFolder)aFileOrAFolder).getFileOrFolderList()) {
         			
