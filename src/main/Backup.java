@@ -188,8 +188,10 @@ public class Backup {
     			
     			Logger.log("Writing folderlist-withfullpaths.json to " + destinationFolderPathSubFolder.toString());
     			
-        		// write the json file to the destination folder
-        		WriteToFile.writeToFile((new ObjectMapper()).writeValueAsString(FileAndFolderUtilities.createAFileOrAFolderWithFullPath(listOfFilesAndFoldersInPreviousBackupFolder, new ArrayList<>(), null)), destinationFolderPathSubFolder.toString() + File.separator + "folderlist-withfullpaths.json");
+    			String jsonString = (new ObjectMapper()).writeValueAsString(FileAndFolderUtilities.createAFileOrAFolderWithFullPath(listOfFilesAndFoldersInPreviousBackupFolder, new ArrayList<>(), null));
+
+    	       	// write the json file to the destination folder
+        		WriteToFile.writeToFile(OtherUtilities.removeDoubleBackSlashes(jsonString), destinationFolderPathSubFolder.toString() + File.separator + "folderlist-withfullpaths.json");
             	
             } catch (IOException e) {
             	Logger.log("Failed to write json file folderlist-withfullpaths.json to  " + destinationFolderPath.toString());

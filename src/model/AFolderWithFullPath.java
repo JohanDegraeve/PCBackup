@@ -3,8 +3,6 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 public class AFolderWithFullPath extends AFileOrAFolderForFullPath {
 
 	/**
@@ -22,7 +20,7 @@ public class AFolderWithFullPath extends AFileOrAFolderForFullPath {
 
 	public AFolderWithFullPath(String path, String pathToBackup) {
 		
-		super(path, pathToBackup);
+		super(path);
 		this.fileOrFolderList = new ArrayList<>();
 	}
 
