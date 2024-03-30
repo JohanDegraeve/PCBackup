@@ -171,6 +171,22 @@ public class FileAndFolderUtilities {
                     .orElse(null);
         }
 
+        /**
+         * this function creates an instance of AFileOrAFolderForFullPath, starting from an instance of AFileOrAFolder<br>
+         * It's called recursively, that's why it has also as arguments an array of subfolders and the parentFolder which is an instance of AFolderWithFullPath<br>
+         * AFileOrAFolderForFullPath contains the same information as AFileOrAFolder but a bit changed:<br>
+         * - the path attribute in a folder contains the full path (inclusive all subfolders) if it also has files<br>
+         * - ts is now a human readable timestamp, local time<br>
+         * - pathToBackup is only filled in only for files not for folders<br>
+         * <br>
+         * Goal of all this is to have an easily searchable json file. Searchable for files, and to have an easy why of the full path of the containing folder and also the last modified timestamp<br>
+         * <br>
+         * The size of the json file (which is created later) must be less than 50 MB, which allows to open the file with the free version of Dadroid json viewer<br>
+         * @param aFileOrAFolder
+         * @param subfolders
+         * @param parentFolder
+         * @return
+         */
         public static AFileOrAFolderForFullPath createAFileOrAFolderWithFullPath(AFileOrAFolder aFileOrAFolder, ArrayList<String> subfolders, AFolderWithFullPath parentFolder) {
         	
         	if (aFileOrAFolder instanceof AFile) {
@@ -181,7 +197,7 @@ public class FileAndFolderUtilities {
         		returnValueAFile.setts(OtherUtilities.dateToString(new Date(aFileOrAFolderAsFile.getts()), Constants.OUTPUTDATEFORMAT_STRING));
         		
         		if (parentFolder != null) {
-        			
+
         			parentFolder.setPath(OtherUtilities.concatenateStrings(subfolders));
         			
         		}
