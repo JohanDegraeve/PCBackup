@@ -6,24 +6,14 @@ import java.util.List;
 public class AFolderWithFullPath extends AFileOrAFolderForFullPath {
 
 	/**
-	 * the path<br>
-	 * - for folders: it will have the full path only if it contains at least one file, otherwise empty string<br>
-	 * - for files: just the filename
+	 * the path: it will have the full path only if it contains at least one file, otherwise just the subfolder name<br>
 	 */
 	private String path;
 
 	/**
-	 * the list of instance of AFileOrAFolder
+	 * the list of instances of AFileOrAFolder
 	 */
 	private List<AFileOrAFolderForFullPath> fileOrFolderList;
-
-	public List<AFileOrAFolderForFullPath> getFileOrFolderList() {
-		return fileOrFolderList;
-	}
-
-	public void setFileOrFolderList(List<AFileOrAFolderForFullPath> fileOrFolderList) {
-		this.fileOrFolderList = fileOrFolderList;
-	}
 
 	public AFolderWithFullPath(String path, String pathToBackup) {
 		
@@ -37,6 +27,14 @@ public class AFolderWithFullPath extends AFileOrAFolderForFullPath {
 
 	public void setPath(String path) {
 		this.path = path;
+	}
+
+	public List<AFileOrAFolderForFullPath> getFileOrFolderList() {
+		return fileOrFolderList;
+	}
+
+	public void setFileOrFolderList(List<AFileOrAFolderForFullPath> fileOrFolderList) {
+		this.fileOrFolderList = fileOrFolderList;
 	}
 
 }

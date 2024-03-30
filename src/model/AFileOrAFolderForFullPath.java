@@ -1,13 +1,10 @@
 package model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = AFileWithLastModified.class, name = "afile"),
-    @JsonSubTypes.Type(value = AFolderWithFullPath.class, name = "afolder")
-})
-@JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * a parent class for AFileWithLastModified and AFolderWithFullPath<br>
+ * An instance of AFileOrAFolderForFullPath is either a AFileWithLastModified or a AFolderWithFullPath which means it's a file or a folder<br>
+ * 
+ */
 public abstract class AFileOrAFolderForFullPath {
 
 	public AFileOrAFolderForFullPath() {}

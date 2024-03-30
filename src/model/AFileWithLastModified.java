@@ -8,14 +8,12 @@ public class AFileWithLastModified extends AFileOrAFolderForFullPath {
 	private String name;
 	
 	/**
-	 * used only for creating json file with last modified timestamp in full readable text<br>
-	 * In fact it will appear in two json files: folderlist.json with value 'null' and folderlist-withfullpaths.json with date  
+	 * the timestamp the file was created or modified, in human readable, local format<br>
 	 */
 	private String ts = null;
 
 	/**
 	 * in which backup folder can we find the latest version of the file<br>
-	 * for Folders: empty string
 	 * It's a path relative to the source folder of the backup.
 	 */
 	private String pathToBackup;
