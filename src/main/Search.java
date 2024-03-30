@@ -61,7 +61,7 @@ public class Search {
 			Logger.log("Parsing " + pathWithJsonFile.toString());
 			AFileOrAFolder listOfFilesAndFoldersInBackup = FileAndFolderUtilities.fromFolderlistDotJsonToAFileOrAFolder(pathWithJsonFile);
 			
-			iterateThroughFolderOrFile(listOfFilesAndFoldersInBackup, commandLineArguments.searchTextPattern, sourceFolderPath, backupFolderName, Paths.get(""), results);
+			iterateThroughFolderOrFile(listOfFilesAndFoldersInBackup, commandLineArguments.searchTextPattern, backupFolderName, Paths.get(""), results);
 			
 		}
 
@@ -106,18 +106,23 @@ public class Search {
 			// example submap1/submap12/submap121/Jabra Speak 510 user manual_EN_English_RevL.pdf
 			Path subFolderWithItem = Paths.get(thePath);
 			
+			// FIRST COLUMN = filename (if it's a file) or subfoldername (if it's a folder)
 			// write name of matching item, this is just the last part of subFolderWithItem
 			textToWrite += subFolderWithItem.getFileName().toString()  + seperator;
 			
+			// SECOND COLUMN type, 'file' or 'folder'
 			// write if it's a file or a folder
 			textToWrite += (itsafile ? "file":"folder") + seperator; 
 			
+			// THIRD COLUMN - backupfolder where file or folder was found for the last time
 			// add lastBackupFolderNameString
 			textToWrite += lastBackupFolderNameString + seperator;
-					
+			
+			// FOURTH COLUMN - path to backup folder where latest version is stored
 			// add path to backup folder
 			textToWrite += backupFolder.toString()  + seperator;
 			
+			// FIFTH COLUMN - folder name within backup
 			// now add the full path, if it's a file, then just the folder, not the filename
 			if (itsafile) {
 				if (subFolderWithItem.getParent() != null) {
@@ -150,16 +155,17 @@ public class Search {
 	/**
 	 * Go through all subfolders and files in aFileOrAFolder, search the item (subfolder or file) with matching name, if found, get the backup folder name<br>
 	 * updates results with new results<br>
-	 * Only adds matching items that are not yet in results, because some items may have been found in more recent backups. Goal is that the function is first called for the most recent backup
+	 * Only adds matching items that are not yet in results, because some items may have been found in more recent backups. Goal is that the function is first called for the most recent backup<br>
+	 * Key also has an indication if it's a file or a folder, by adding either "-AFILE" or "-AFOLDER"<br>
 	 * example: (here searchTextPattern could be "test"<br>
-	 *   - key = submap2/submap21/submap211/test.txt<br>
+	 *   - key = submap2/submap21/submap211/test.txt-AFILE<br>
 	 *   - value = 2024-03-10 17;53;19 (Incremental)<br>
-	 * In this example a matching item is found in submap2/submap21/submap211 with filename test.txt, most backup where the item is found = 2024-03-10 17;53;19
+	 * In this example a matching item is found in submap2/submap21/submap211 with filename test.txt, most recent (ie last) backup where the item is found = '2024-03-10 17;53;19 (Incremental)'
 	 * @param aFileOrAFolder instance of AFileOrAFolder to search in. This should always match the contents of sourceFolderPath/backupfoldername/subfolder, meaning the caller must make sure this is a correct match
 	 * @param searchTextPattern to search
 	 * @param subfolder is subfolder within a backup where the actual aFileOrAFolder is stored
 	 */
-	private static void iterateThroughFolderOrFile(AFileOrAFolder aFileOrAFolder, Pattern searchTextPattern, Path sourceFolderPath, String backupfoldername, Path subfolder, Map<String, String> results) {
+	private static void iterateThroughFolderOrFile(AFileOrAFolder aFileOrAFolder, Pattern searchTextPattern, String backupfoldername, Path subfolder, Map<String, String> results) {
 		
 		Matcher matcher = searchTextPattern.matcher(aFileOrAFolder.getName());
 		
@@ -198,11 +204,11 @@ public class Search {
 				
 				if (aFileOrAFolder1 instanceof AFile) {
 
-					iterateThroughFolderOrFile(aFileOrAFolder1, searchTextPattern, sourceFolderPath, backupfoldername, subfolder, results);
+					iterateThroughFolderOrFile(aFileOrAFolder1, searchTextPattern, backupfoldername, subfolder, results);
 
 				} else {
 
-					iterateThroughFolderOrFile(aFileOrAFolder1, searchTextPattern, sourceFolderPath, backupfoldername, subfolder.resolve(aFileOrAFolder1.getName()), results);
+					iterateThroughFolderOrFile(aFileOrAFolder1, searchTextPattern, backupfoldername, subfolder.resolve(aFileOrAFolder1.getName()), results);
 
 				}
 				
