@@ -3,9 +3,14 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 public class AFolderWithFullPath extends AFileOrAFolderForFullPath {
+
+	/**
+	 * the path<br>
+	 * - for folders: it will have the full path only if it contains at least one file, otherwise empty string<br>
+	 * - for files: just the filename
+	 */
+	private String path;
 
 	/**
 	 * the list of instance of AFileOrAFolder
@@ -22,8 +27,16 @@ public class AFolderWithFullPath extends AFileOrAFolderForFullPath {
 
 	public AFolderWithFullPath(String path, String pathToBackup) {
 		
-		super(path, pathToBackup);
+		this.path = path;
 		this.fileOrFolderList = new ArrayList<>();
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
 	}
 
 }
