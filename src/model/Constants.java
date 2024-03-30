@@ -18,4 +18,9 @@ public class Constants {
 	 */
 	public static final String OUTPUTDATEFORMAT_STRING = "yyyy MM dd HH:mm:ss";
 	
+	/**
+	 * date format for the log file
+	 */
+	public static final String LOGFILEDATEFORMAT_STRING = "yyyy-MM-dd-HH-mm-ss";
+	
 }

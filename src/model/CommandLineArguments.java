@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import utilities.Logger;
 import utilities.OtherUtilities;
 
 /**
@@ -183,7 +182,12 @@ public class CommandLineArguments {
      *  Folder where logfile should be written<br>
      *  can be null, in that case log to System.out
      */
-    public String logfilefolder;
+    private String logfilefolder;
+    
+    /**
+     * path for logging, this includes the filename
+     */
+    public static Path logFilePathAsPath = null;
     
     /**
      * filenames that should be ignored, ie not added to the folderlist.json and not copied in backups<br>
@@ -586,10 +590,10 @@ public class CommandLineArguments {
     		    
     	}
     
-    	if (logfilefolder != null) {
-    		    System.out.println("   Log file:                           " + logfilefolder);
+    	if (logFilePathAsPath != null) {
+    		    System.out.println("   Log file:                               " + logFilePathAsPath.toString());
     	} else {
-    		    System.out.println("   Log file:                           none");
+    		    System.out.println("   Log file:                               none");
     	}
     	
     	if (!search) {
@@ -686,12 +690,15 @@ public class CommandLineArguments {
     }
     
     private static void configureLogFile(String logFilePath) {
-        // Implement the logic to configure logging to the specified file
-        // This method can be adapted based on your logging library and configuration
-        // ...
-    	// TODO check if logfilePath is valid
-    	Logger.logFileFolder = logFilePath;
-        System.out.println("Logging to file " + logFilePath);
+    	
+    	// create filename
+    	String logfileNameString = "PCBackup-" + OtherUtilities.dateToString(new Date(), Constants.LOGFILEDATEFORMAT_STRING) + ".log";
+    	
+    	// create the Path
+    	logFilePathAsPath = Paths.get(logFilePath, logfileNameString);
+    	
+        System.out.println("Logging to file " + logFilePathAsPath);
+        
     }
     
     /**
