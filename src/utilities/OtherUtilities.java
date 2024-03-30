@@ -240,40 +240,24 @@ public class OtherUtilities {
 	 */
 	public static String removeDoubleBackSlashes(String input) {
 		
-		// System.out.println correctly writes the string without the double backslashes.
-		// What we do is redirect System.out to a ByteArrayOutputStream, then apply System.println to it
+		// convert input to bytearray
+		byte[] inputAsByteArray = input.getBytes();
 		
-		// Create a stream to hold the output
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		PrintStream ps = new PrintStream(baos);
+		// create new bytearray with same length as inputAsByteArray, with 0 values
+		byte[] newbytearray = new byte[inputAsByteArray.length];
 		
-		// Save the old System.out
-		PrintStream old = System.out;
-		
-		// Tell Java to use your special stream
-		System.setOut(ps);
-		
-		// Print some output: goes to your special stream
-		System.out.println(input);
-		
-		// convert baos to bytearray
-		byte[] baosasbytearray = baos.toByteArray();
-		
-		// create new bytearray with same length as baosasbytearray, with 0 values
-		byte[] newbytearray = new byte[baosasbytearray.length];
-		
-		// we'll go through baosasbytearray by per byte. If we encounter the ASCII code for \ (92) then check if the next byte is also 92 and if yes, skip it
+		// we'll go through inputAsByteArray byte per byte. If we encounter the ASCII code for \ (92) then check if the next byte is also 92 and if yes, skip it
 		
 		// index in newbytearray
 		int j = 0;
 		
-		for (int i = 0; i < baosasbytearray.length;i++) {
+		for (int i = 0; i < inputAsByteArray.length;i++) {
 			
 			// copy byte from newbytearray to baosasbytearray
-			newbytearray[j] = baosasbytearray[i];
+			newbytearray[j] = inputAsByteArray[i];
 			
 			// if two consecutive backslashes, then we will not increase j, which means the second instance of the backslash will be copied on the same index as the first
-			if ((baosasbytearray[i] == 92) && (baosasbytearray[i + 1] == 92)) {// 92 is the ascii code for backslash
+			if ((inputAsByteArray[i] == 92) && (inputAsByteArray[i + 1] == 92)) {// 92 is the ascii code for backslash
 				// two consecutive backslashes
 				// continue without increasing j, that means the second backslash will not be copied
 			} else {
@@ -283,10 +267,6 @@ public class OtherUtilities {
 		}
 		
    		// Put things back
-		System.out.flush();
-		System.setOut(old);
-			
-
 		return new String(newbytearray);
 		
 	}
