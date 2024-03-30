@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import model.AFile;
 import model.AFileOrAFolder;
 import model.AFolder;
 import model.CommandLineArguments;
+import model.Constants;
 import utilities.FileAndFolderUtilities;
 import utilities.ListBackupsInFolder;
 import utilities.Logger;
@@ -75,7 +77,7 @@ public class Search {
 		textToWrite += "sep=,\n";
 
 		// we have the results, create text to write to file
-		textToWrite += "name of matching item" + seperator + "type" + seperator + "backupfolder where file was found for the last time" + seperator + "path to backup folder where latest version is stored" + seperator + "folder name within backup\n";
+		textToWrite += "name of matching item" + seperator + "type" + seperator + "last modified" + seperator + "backupfolder where file was found for the last time" + seperator + "path to backup folder where latest version is stored" + seperator + "folder name within backup\n";
 		for (Map.Entry<String, String> entry : results.entrySet()) {
             
 			// first determine if it's a file or a folder by checking and removing the last part of the key
@@ -90,15 +92,18 @@ public class Search {
 				thePath = entry.getKey().substring(0, entry.getKey().length() - 6);
 			}
 
-			// get the value
+			// get the value , example value '2024-03-10 17;53;19 (Incremental)|||2024-03-23 12;14;01 (Incremental)|||2024 02 10 00:07:19'
+			// in this example:
+			// - lastmodifiedtimestamp = 2024 02 10 00:07:19
+			// - lastBackupFolderName = 2024-03-23 12;14;01 (Incremental)
+			// - backupFolderWithLatestVersionOfTheFileOrFolder = 2024-03-10 17;53;19 (Incremental)
 			String value = entry.getValue();
-			
-			// strip off the backupfoldername, this is actually the first backupfoldername where we found a specific value (a full path), starting from the youngest, so it's
-			//    actually the latest backupfolder where the value (the full path) was found. This is interesting info for the user
-			String lastBackupFolderNameString = value.substring(value.indexOf("|||") + 3, value.length());
+			String lastBackupFolderName_Plus_lastmodifiedtimestamp = value.substring(value.indexOf("|||") + 3, value.length());
+			String lastmodifiedtimestamp = lastBackupFolderName_Plus_lastmodifiedtimestamp.substring(lastBackupFolderName_Plus_lastmodifiedtimestamp.indexOf("|||") + 3, lastBackupFolderName_Plus_lastmodifiedtimestamp.length());
+			String lastBackupFolderName = lastBackupFolderName_Plus_lastmodifiedtimestamp.substring(0, lastBackupFolderName_Plus_lastmodifiedtimestamp.length() - lastmodifiedtimestamp.length() - 3);
 			
 			// and now the path
-			String backupFolderWithLatestVersionOfTheFileOrFolder = value.substring(0, value.length() - lastBackupFolderNameString.length() - 3);
+			String backupFolderWithLatestVersionOfTheFileOrFolder = value.substring(0, value.length() - lastBackupFolderName_Plus_lastmodifiedtimestamp.length() - 3);
 			
 			// full backupfolder example /Users/johandegraeve/Downloads/dest/2024-03-10 17;53;19 (Incremental)
 			Path backupFolder = sourceFolderPath.resolve(backupFolderWithLatestVersionOfTheFileOrFolder);
@@ -114,15 +119,18 @@ public class Search {
 			// write if it's a file or a folder
 			textToWrite += (itsafile ? "file":"folder") + seperator; 
 			
-			// THIRD COLUMN - backupfolder where file or folder was found for the last time
-			// add lastBackupFolderNameString
-			textToWrite += lastBackupFolderNameString + seperator;
+			// THIRD COLUMN, if a file, the last modified timestamp
+			textToWrite += lastmodifiedtimestamp + seperator;
 			
-			// FOURTH COLUMN - path to backup folder where latest version is stored
+			// FOURTH COLUMN - backupfolder where file or folder was found for the last time
+			// add lastBackupFolderNameString
+			textToWrite += lastBackupFolderName + seperator;
+			
+			// FIFTH COLUMN - path to backup folder where latest version is stored
 			// add path to backup folder
 			textToWrite += backupFolder.toString()  + seperator;
 			
-			// FIFTH COLUMN - folder name within backup
+			// SIXTH COLUMN - folder name within backup
 			// now add the full path, if it's a file, then just the folder, not the filename
 			if (itsafile) {
 				if (subFolderWithItem.getParent() != null) {
@@ -156,14 +164,23 @@ public class Search {
 	 * Go through all subfolders and files in aFileOrAFolder, search the item (subfolder or file) with matching name, if found, get the backup folder name<br>
 	 * updates results with new results<br>
 	 * Only adds matching items that are not yet in results, because some items may have been found in more recent backups. Goal is that the function is first called for the most recent backup<br>
+	 * <br>
 	 * Key also has an indication if it's a file or a folder, by adding either "-AFILE" or "-AFOLDER"<br>
+	 * <br>
+	 * Value also contains the backup folder name where we found it for the last time (which is not the same as the backup folder where the last version of the file is stored - seperated by |||<br>
+	 * Value also has the last modified timestamp, also seperated from the rest by |||
+	 * <br>
 	 * example: (here searchTextPattern could be "test"<br>
-	 *   - key = submap2/submap21/submap211/test.txt-AFILE<br>
-	 *   - value = 2024-03-10 17;53;19 (Incremental)<br>
-	 * In this example a matching item is found in submap2/submap21/submap211 with filename test.txt, most recent (ie last) backup where the item is found = '2024-03-10 17;53;19 (Incremental)'
+	 *   - key = submap2/submap21/submap211/test.txt-AFILE => it's a file with name test.txt in folder submap2/submap21/submap211<br>
+	 *   - value = 2024-03-10 17;53;19 (Incremental)|||2024-03-15 12;53;19 (Incremental)|||2024 02 12 21:35:40<br>
+	 *   &nbsp&nbsp&nbsp - => backup where we find the latest version = 2024-03-10 17;53;19 (Incremental)<br>
+	 *   &nbsp&nbsp&nbsp - => last backup folder where the file was found = 2024-03-15 12;53;19 (Incremental)<br>
+	 *   &nbsp&nbsp&nbsp - => if it's a file last modified itmestamp of the file = 2024 02 12 21:35:40<br>
+	 * <br>
 	 * @param aFileOrAFolder instance of AFileOrAFolder to search in. This should always match the contents of sourceFolderPath/backupfoldername/subfolder, meaning the caller must make sure this is a correct match
-	 * @param searchTextPattern to search
-	 * @param subfolder is subfolder within a backup where the actual aFileOrAFolder is stored
+	 * @param searchTextPattern to search, regex is used
+	 * @param subfolder is subfolder within a backup where the actual aFileOrAFolder is stored, this value is used to create the key value. This is a full path example submap2/submap21/submap211
+	 * @param results instance of Map<String, String> which contains the results after calling the function
 	 */
 	private static void iterateThroughFolderOrFile(AFileOrAFolder aFileOrAFolder, Pattern searchTextPattern, String backupfoldername, Path subfolder, Map<String, String> results) {
 		
@@ -188,6 +205,12 @@ public class Search {
 			// to the value we will add at the end the backupfoldername, this will be cut off again before writing to csv
 			// we add three pipe delimiters
 			String valueToAdd = aFileOrAFolder.getPathToBackup() + "|||" + backupfoldername;
+			
+			// also add the last modified timestamp if it's a file
+			valueToAdd += "|||" ;
+			if (aFileOrAFolder instanceof AFile) {
+				valueToAdd += OtherUtilities.dateToString(new Date(((AFile)aFileOrAFolder).getts()), Constants.OUTPUTDATEFORMAT_STRING);
+			}
 			
 			// if not yet in results, then add it, with the backup folername where the latest version is stored
 			if (!results.containsKey(finalKeyToAdd)) {
