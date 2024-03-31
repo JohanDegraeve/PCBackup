@@ -113,12 +113,9 @@ public class Backup {
                 			continue;
                 		}
                 	} else {
-                		// check if the directory name is in the list excludedPaths
-                		// it's equals check, example if directory = c:\temp\backuptest\submap1
-                		//    and if in the list excludedPaths there is a string c:\temp\backuptest\submap1 then this is considered as a match
-                		//    in that case, the directory will not be backed up
+                		// check if folder is in excludedPaths
                 		for (String excludedPath : commandLineArguments.excludedPaths) {
-                			if (path.getFileName().toString().toUpperCase().trim().equals(excludedPath.toUpperCase().trim())) {
+                			if (path.getFileName().toString().trim().equals(excludedPath.trim())) {
                 				Logger.log("      Excluding folder '" + excludedPath + "' because " + excludedPath + " is in the file excludedpathlist");
                 				continue directoryLoop;
                 			}

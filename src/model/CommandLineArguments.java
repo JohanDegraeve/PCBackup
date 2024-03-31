@@ -826,10 +826,10 @@ public class CommandLineArguments {
     	System.out.println("            the file with the search results will be named searchresults.csv. If that file already exists, then it will be named for intance searchresults (1).txt");
     	System.out.println("  --overwrite: only for restore. If value = true then files that already exist in the destination will be overwritten. Default n (no)");
     	System.out.println("  --logfilefolder: location of the logfile, just the folder name, it must exist.");
-    	System.out.println("  --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.");
-    	System.out.println("  --excludedpathlist: full paths that need to be exclude, starting from the main source folder, ie not start for instance with c:\\..");
+    	System.out.println("  --excludedfilelist: list of file names to exclude, exact match is applied, case sensitive.");
+    	System.out.println("  --excludedpathlist: list of folder names to exclude, these are subfolder names, exact match is applied, case sensitive.");
     	System.out.println("  --restoredate: mandatory if type arguments = R. Date and time for which restore should occur. Format " + Constants.ARGUMENTDATEFORMAT_STRING);
-    	System.out.println("  --subfoldertorestore: The specific folder within source that needs to be restored, If the complete backup needs to be restored, then omit this argument, If a specific subfolder needs to be restored, then specify that folder here.");
+    	System.out.println("  --subfoldertorestore: The specific folder within source that needs to be restored, If the complete backup needs to be restored, then omit this argument or give an empty string (\"\"). If a specific subfolder needs to be restored, then specify that folder here.");
     	System.out.println("  --foldernamemapping:");
     	System.out.print(  "          Sometimes SharePoint sync gives different foldernames to the main folder. Example sometimes the Documents folder is named \"XDrive Documents\", but");
     	System.out.println(" on another PC it may be named \"XDrive Documenten\"");
