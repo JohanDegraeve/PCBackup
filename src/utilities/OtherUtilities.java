@@ -16,6 +16,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -267,6 +269,22 @@ public class OtherUtilities {
    		// Put things back
 		return new String(newbytearray);
 		
+	}
+	
+	/**
+	 * searches for value hashMap and if found returns the key<br>
+	 * If not found, then returns value itself
+	 * @param hashMap
+	 * @param value
+	 * @return
+	 */
+	public static String getKeyForValue(HashMap<String, String> hashMap, String value) {
+		for (Map.Entry<String, String> entry : hashMap.entrySet()) {
+            if (entry.getValue().equals(value)) {
+                return  entry.getKey();
+            }
+        }
+		return value;
 	}
 
 }
