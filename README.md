@@ -11,7 +11,7 @@ Java app to Backup and Restore, full and incremental.
 - Incremental Backup
   - creates a new folder where the incremental backup is stored, example "2024-01-19 00;26;57 (Incremental)"
   - Each time an incremental backup is taken, then first the file folderlist.json from the previous backup (either full or incremental) is copied and parsed.
-  - then the json structure is created for the current status off the source, ie the app will go through the current files and folders, read the names of the files and folders and the timestamps of the files
+  - then the json structure is created for the current status of the source, ie the app will go through the current files and folders, read the names of the files and folders and the timestamps of the files
   - A comparison is made of the two json structures
       - when a file is removed in the source, it is removed also in the destination json structure
       - when a file is added in the source, it is added also in the destination json structure, and also copied to the destination folder. The json structure field pathToBackup will have the name of the new incremental backup
@@ -21,10 +21,11 @@ Java app to Backup and Restore, full and incremental.
 
      
 # Restore
-- The user specifies the folder to restore (can be complete or a subfolder) and the date + time
-- Search the most recent incremental or full backup created before requested restore time 
+- The user specifies the folder to restore and the restore date + time. "folder to restore" is path starting from the source folder.
+- Search the most recent incremental or full backup created before requested restore date + time 
 - parse folderlist.json that is stored in that backup
 - go through the json structure
+    - find the specified source folder. If not found, there's no restore. 
     - each folder and subfolder is created in the restore
     - each file is copied form the backup, the field pathToBackup indicates in which backup the latest version is stored
    
@@ -48,10 +49,10 @@ The app is launched with a command line interface.
             the file with the search results will be named searchresults.csv. If that file already exists, then it will be named for intance searchresults (1).txt
   * --overwrite: only for restore. If value = true then files that already exist in the destination will be overwritten. Default n (no)
   * --logfilefolder: location of the logfile, just the folder name, it must exist.
-  * --excludedfilelist: filenames, with full path, that contains list of filenames that should be ignored, ie not added to the folderlist.json and not copied in backups.
-  * --excludedpathlist: full paths that need to be exclude, starting from the main source folder, ie not start for instance with c:\..
+  * --excludedfilelist: list of file names to exclude, exact match is applied, case sensitive.
+  * --excludedpathlist: list of folder names to exclude, these are subfolder names, exact match is applied, case sensitive.
   * --restoredate: mandatory if type arguments = R. Date and time for which restore should occur. Format yyyy-MM-dd-HH-mm-ss
-  * --subfoldertorestore: The specific folder within source that needs to be restored, If the complete backup needs to be restored, then omit this argument, If a specific subfolder needs to be restored, then specify that folder here.
+  * --subfoldertorestore: The specific folder within source that needs to be restored, If the complete backup needs to be restored, then omit this argument or give an empty string (""). If a specific subfolder needs to be restored, then specify that folder here.
   * --foldernamemapping:<br>
         Sometimes SharePoint sync gives different foldernames to the main folder. Example sometimes the Documents folder is named "XDrive Documents", but on another PC it may be named "XDrive Documenten"<br>
           The app allows to do mapping of foldernames. This is only applicable to the initial folder, not the subfolders. It's a list of mappings. Example line:<br>
