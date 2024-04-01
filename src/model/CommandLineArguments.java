@@ -821,7 +821,7 @@ public class CommandLineArguments {
     	System.out.println("            for SEARCH:  the folder where your backup is stored and where the search will happen, ie the folder where you previously backed up to");
     	System.out.println("");
     	System.out.println("Optional arguments:");
-    	System.out.println("  --restoreto: only for restore. This is the foldername where you want to restore to");
+    	System.out.println("  --restoreto: only for restore. This is the foldername where you want to restore to. You can use the original source folder, in that case you should add the argument 'overwrite' with value 'true'");
     	System.out.println("  --writesearchto: foldername where searchresults will be written to");
     	System.out.println("            the file with the search results will be named searchresults.csv. If that file already exists, then it will be named for intance searchresults (1).txt");
     	System.out.println("  --overwrite: only for restore. If value = true then files that already exist in the destination will be overwritten. Default n (no)");
