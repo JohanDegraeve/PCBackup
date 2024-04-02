@@ -13,6 +13,7 @@ import model.Constants;
 import utilities.FileAndFolderUtilities;
 import utilities.ListBackupsInFolder;
 import utilities.Logger;
+import utilities.OtherUtilities;
 import utilities.PathUtilities;
 
 public class Restore {
@@ -57,7 +58,7 @@ public class Restore {
 		    	AFolder folderToStart =  getSubFolderAsAFolder((AFolder)listOfFilesAndFoldersInLastBackup, Paths.get(commandLineArguments.subfolderToRestore));
 
 		    	Logger.log("Restoring folders and files ...");
-				restore(folderToStart, destinationFolderPath, sourceFolderPath, Paths.get(commandLineArguments.subfolderToRestore), olderBackups, commandLineArguments);
+				restore(folderToStart, destinationFolderPath, sourceFolderPath, Paths.get(commandLineArguments.subfolderToRestore), olderBackups, commandLineArguments, 1);
 				
 			} else {
 				Logger.log("First element in folderlist.json is not a folder, looks like a coding error");
@@ -82,36 +83,41 @@ public class Restore {
 	 * @param folderToBackup instance of AFolder to backup
 	 * @param destinationFolder where to copy to, this is for example c:\restorefolder. destinationFolder is an absolute Path
 	 * @param sourceBackupRootFolder this is for example c:\backupfolder without the name of the incremental or full folder. sourceBackupRootFolder is an absolute Path
-	 * @param subfolder within the folderToBack that is being restored, will also be used as subfolder in the sourceBackupRootFolder where to find the original file, subfolder is a relative path
-	 * @param olderBackups backups older than the restoredata, this is just a list of strings, specifying the bacup name (eg 2024-03-10 18;11;35 (Incremental)
+	 * @param subfolder that is being restored, will be used as subfolder in the sourceBackupRootFolder where to find the original file, subfolder is a relative path
+	 * @param olderBackups backups older than the restoredata, this is just a list of strings, specifying the backup name (eg 2024-03-10 18;11;35 (Incremental). This list is used in case a file is not found in the backup where it should be found (due to a deletion of a file by error for example)
+	 * @param level : if called recursively, this is tells us if it's the first time or more that the function is called
 	 */
-    private static void restore(AFolder folderToBackup, Path destinationFolder, Path sourceBackupRootFolder, Path subfolder, List<String> olderBackups, CommandLineArguments commandLineArguments) {
+    private static void restore(AFolder folderToBackup, Path destinationFolder, Path sourceBackupRootFolder, Path subfolder, List<String> olderBackups, CommandLineArguments commandLineArguments, int level) {
     	
-    	// That folder doesn't exist yet in the destinationFolder
-    	// let's create it but check anyway
-    	if (!Files.exists(destinationFolder.resolve(subfolder))) {
-    		try {
-				Files.createDirectories(destinationFolder.resolve(subfolder));
-			} catch (IOException e) {
-				e.printStackTrace();
-				Logger.log("Exception in restore, while creating the directory " + destinationFolder.resolve(subfolder).toString());
-	            Logger.log(e.toString());
-	            System.exit(1);
-			}
+    	// we must apply the foldername mapping in reverse order
+    	// the first folder in subfolder is the one where we need to apply the mapping
+    	Path[] paths = PathUtilities.splitPath(subfolder);
+    	Path newDestinationFolder = destinationFolder;
+    	for (int i = 0;i < paths.length; i++) {
+    		if (i == 0) {
+    			newDestinationFolder = newDestinationFolder.resolve(OtherUtilities.getKeyForValue(commandLineArguments.folderNameMapping, paths[i].getFileName().toString()));
+    		} else {
+    			newDestinationFolder = newDestinationFolder.resolve(paths[i].getFileName().toString());
+    		}
     	}
     	
     	for (AFileOrAFolder sourceItem : folderToBackup.getFileOrFolderList()) {
     		
     		if (sourceItem instanceof AFolder) {
     			
-    			Path folderToCreate = destinationFolder.resolve(subfolder).resolve(sourceItem.getName());
+    			Path folderToCreate = newDestinationFolder;
+    			if (level == 1) {
+    				folderToCreate = newDestinationFolder.resolve(OtherUtilities.getKeyForValue(commandLineArguments.folderNameMapping, sourceItem.getName()));	
+    			} else {
+    				folderToCreate = newDestinationFolder.resolve(sourceItem.getName());
+    			}
     			
     			// create the folder in the destination and call restore for the folder recursively
     			try {
     				
 					Files.createDirectories(folderToCreate);
 					
-					Restore.restore((AFolder)sourceItem, destinationFolder, sourceBackupRootFolder, subfolder.resolve(sourceItem.getName()), olderBackups, commandLineArguments);
+					Restore.restore((AFolder)sourceItem, destinationFolder, sourceBackupRootFolder, subfolder.resolve(sourceItem.getName()), olderBackups, commandLineArguments, level + 1);
 					
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -123,7 +129,7 @@ public class Restore {
     		} else {
     			
     			Path sourceToCopy = sourceBackupRootFolder.resolve(sourceItem.getPathToBackup()).resolve(subfolder).resolve(sourceItem.getName());
-    			Path destination = destinationFolder.resolve(subfolder).resolve(sourceItem.getName());
+    			Path destination = newDestinationFolder.resolve(sourceItem.getName());
     			
     			try {
     				
