@@ -265,8 +265,17 @@ public class FileAndFolderUtilities {
             List<AFileOrAFolder> sourceContents = sourceFolder.getFileOrFolderList();
             List<AFileOrAFolder> destContents = destFolder.getFileOrFolderList();
 
+            if (sourceFolder.getName().equalsIgnoreCase("Images")) {
+            	System.out.println("hello");
+            }
+            	
+            
             // Process files and folders in source
             for (AFileOrAFolder sourceItem : sourceContents) {
+            	
+            	if (sourceItem.getName().equalsIgnoreCase("Images")) {
+                	System.out.println("hello");
+                }
             	
             	// for the foldername mapping, we need to compare to the mapped name, so if a mapping is found, then we store the original name
             	String originalSourceItemName = sourceItem.getName();
