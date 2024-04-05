@@ -110,6 +110,9 @@ public class FileAndFolderUtilities {
     	 * @param destBackupFolderPath the source backup folder path where files need to be copied to
     	 * @param sourceFileOrFolder instance of AFileOrAFolder that represents the contents in sourceFolderPath
     	 * @param subfolders is an arraylist of strings, representing the subfolders. We need to pass them through as we go recursively through the function. It's needed in case a file copy needs to be made to make sure we put it in the right folder.
+    	 * @param level first folder is treated a bit different when it comes to deletion, that's why this level is used
+    	 * @param backupFolderName needed to write the pathToBackup
+    	 * @param commandLineArguments the commandlinearguments
     	 */
         public static void compareAndUpdate(AFileOrAFolder sourceFileOrFolder, AFileOrAFolder destFileOrFolder, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName, Integer level, CommandLineArguments commandLineArguments) {
         	
@@ -121,7 +124,10 @@ public class FileAndFolderUtilities {
                 // Compare and update folders
                 compareAndUpdateFolders((AFolder) sourceFileOrFolder, (AFolder) destFileOrFolder, sourceFolderPath, destBackupFolderPath, OtherUtilities.addString(subfolders, sourceFileOrFolder.getName()), backupFolderName, level, commandLineArguments);
             } else {
-            	Logger.log("in compareAndUpdate(AFileOrAFolder source, AFileOrAFolder dest), not both File and not both Folder");
+            	Logger.log("In compareAndUpdate(AFileOrAFolder source, AFileOrAFolder dest), not both File and not both Folder");
+            	Logger.log("   this is a difficult situation. It looks like an item that was previously a file is now a folder with the same name, or vice versa.");
+            	Logger.log("   Backup interrupted");
+            	System.exit(1);
             }
         }
 
