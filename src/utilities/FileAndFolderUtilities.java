@@ -265,17 +265,8 @@ public class FileAndFolderUtilities {
             List<AFileOrAFolder> sourceContents = sourceFolder.getFileOrFolderList();
             List<AFileOrAFolder> destContents = destFolder.getFileOrFolderList();
 
-            if (sourceFolder.getName().equalsIgnoreCase("Images")) {
-            	System.out.println("hello");
-            }
-            	
-            
             // Process files and folders in source
             for (AFileOrAFolder sourceItem : sourceContents) {
-            	
-            	if (sourceItem.getName().equalsIgnoreCase("Images")) {
-                	System.out.println("hello");
-                }
             	
             	// for the foldername mapping, we need to compare to the mapped name, so if a mapping is found, then we store the original name
             	String originalSourceItemName = sourceItem.getName();
@@ -364,17 +355,31 @@ public class FileAndFolderUtilities {
             // Process items in dest that don't exist in source
             // but only for not level 1 folders, meaning once a backup is taken of a sharepoint library, it will not be removed anymore in the backup
             if (level > 1) {
-                if (destContents.removeIf(destItem -> !containsItem(destItem, sourceContents))) {
-                	Logger.log("   Some files and/or folders in " + OtherUtilities.concatenateStrings(subfolders) + " that were still in previous backup are not found anymore in the source");
-                	Logger.log("      Those files and/or folders will be removed from the json structure");
-                }
+            	
+            	int cntr = 0;
+            	while (cntr < destContents.size()) {
+            		
+            		AFileOrAFolder destItem = destContents.get(cntr);
+            		
+            		// Find the corresponding item in sourceContents
+                    AFileOrAFolder matchingSourceItem = findMatchingItem(destItem, sourceContents);
+                    
+                    if (matchingSourceItem == null) {
+                    	// there's no item in source with the same name, so we can remove it from dest
+                    	destContents.remove(cntr);
+                    	String fullPathString = OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, destItem.getName()));
+                    	if (destItem instanceof AFolder) {
+                        	Logger.log("   Removed folder " + fullPathString);
+                    	} else {
+                    		Logger.log("   Removed file " + fullPathString);
+                    	}
+                    } else {
+                    	cntr = cntr +1;
+                    }
+                    
+            	}
+            	
             }
         }
-
-        private static boolean containsItem(AFileOrAFolder sourceFileOrFolder, List<AFileOrAFolder> fileOrFolderList) {
-            // Check if itemList contains an item with the same name as the specified item
-            return fileOrFolderList.stream().anyMatch(existingItem -> existingItem.getName().equals(sourceFileOrFolder.getName()));
-        }
-
 
 }
