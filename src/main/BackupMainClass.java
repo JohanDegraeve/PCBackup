@@ -13,10 +13,14 @@ public class BackupMainClass {
 	
     public static void main(String[] args) {
     	
-    	System.out.println("version 1.2.9");
+    	String version = "version 1.2.10";
+    	
+    	System.out.println(version);
         
     	CommandLineArguments commandLineArguments = CommandLineArguments.getInstance(args);
 
+    	utilities.Logger.log(version);
+    	
     	if (commandLineArguments.search) {
     		Search.search();
     		return;
