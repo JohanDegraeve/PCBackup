@@ -862,7 +862,7 @@ public class CommandLineArguments {
     	System.out.println("                   the searchtext is handled as a regular expression.");
     	System.out.println("                   Examples:");
     	System.out.println("                      - to search for files with 'Trident' or 'Jabra', the searchtext you specify here would be '\\b(?:Trident|Jabra)\\b'");
-    	System.out.println("                      - to search for files with 'Trident' and 'Jabra', the searchtext you specify here would be '(?=.*\\bTrident\\b)(?=.*\\bJabra\\b)'");
+    	System.out.println("                      - to search for files with 'Trident' and 'Jabra', the searchtext you specify here would be '(?=.*\\bManual\\b)(?=.*\\bJabra\\b)'");
     	System.out.println("  --startsearchdate: when searching, only search in backups created after this date. Format = " + Constants.ARGUMENTDATEFORMAT_STRING + ". Default = 1 1 1970 ");
     	System.out.println("  --endsearchdate: when searching, only search in backups created after before or at this date. Format = " + Constants.ARGUMENTDATEFORMAT_STRING + ". Default = now");
     }

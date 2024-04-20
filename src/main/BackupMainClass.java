@@ -31,7 +31,7 @@ public class BackupMainClass {
 	
     public static void main(String[] args) {
     	
-    	String version = "version 1.2.10";
+    	String version = "version 1.2.11";
     	
     	System.out.println(version);
         

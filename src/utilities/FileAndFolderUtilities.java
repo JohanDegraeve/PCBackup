@@ -247,11 +247,17 @@ public class FileAndFolderUtilities {
         
         private static void compareAndUpdateFiles(AFile sourceFile, AFile destFile, Path sourceFolderPath, Path destBackupFolderPath, ArrayList<String> subfolders, String backupFolderName, CommandLineArguments commandLineArguments) {
             // Compare and update files based on last modified timestamp
-            if (sourceFile.getts() > destFile.getts()) {
+            if (sourceFile.getts() != destFile.getts()) {
+            	
+            	// create logtext depending if getts > or < 
+            	String additionalLogTextString = "";
+            	if (sourceFile.getts() < destFile.getts()) {
+            		additionalLogTextString = " - this file has an older date in the source, looks like an older/restored version was stored.";
+            	} 
             	
                 // Update destFile with the new timestamp
                 destFile.setts(sourceFile.getts());
-                Logger.log("   Copying updated file " + OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, sourceFile.getName())));
+                Logger.log("   Copying updated file " + OtherUtilities.concatenateStrings(OtherUtilities.addString(subfolders, sourceFile.getName())) + additionalLogTextString);
                 
                 // set also the backup foldername
                 destFile.setPathToBackup(backupFolderName);

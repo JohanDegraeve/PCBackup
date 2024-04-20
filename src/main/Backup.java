@@ -163,7 +163,7 @@ public class Backup {
         	Logger.log("Starting full backup");
             CreateFullBackup.createFullBackup(listOfFilesAndFoldersInSourceFolder, sourceFolderPath, destinationFolderPathSubFolder, commandLineArguments);
             Logger.log("Backup finished");
-            System.out.println("Backup finished");
+           
         } else {
         	
         	Logger.log("Parsing the json file from previous backup " + mostRecentBackupPath.resolve("folderlist.json").toString()); 
