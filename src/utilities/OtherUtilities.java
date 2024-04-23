@@ -234,7 +234,7 @@ public class OtherUtilities {
 		
 		SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.BACKUPFOLDERDATEFORMAT_STRING);
 		
-		String dateAsString = backupName.substring(0,18);
+		String dateAsString = backupName.substring(0,19);
 		
 		try {
 			return dateFormat.parse(dateAsString);
